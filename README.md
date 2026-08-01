@@ -141,7 +141,8 @@ State Management     →   React Context  | LocalStorage   | JSON Data Stores
 
 ### 👩‍💼 Admin Control Panel
 
-![Admin](docs/screenshots/admin-dashboard.png)
+<img width="1918" height="942" alt="Screenshot 2026-08-01 093006" src="https://github.com/user-attachments/assets/6d891418-df04-4d3b-94ad-c78cc1f84400" />
+
 
 ---
 
