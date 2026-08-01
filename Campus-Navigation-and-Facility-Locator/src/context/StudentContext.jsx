@@ -109,8 +109,8 @@ export const StudentProvider = ({ children }) => {
     return tokenObj;
   };
 
-  // Trigger Emergency SOS
-  const triggerSOSAlert = (userLocation = 'Academic Block B') => {
+  // Trigger Emergency SOS with Recorded Video & Voice Alert
+  const triggerSOSAlert = (userLocation = 'Academic Block B - Floor 3', videoUrl = null, customMessage = '') => {
     const sosRecord = {
       id: `SOS-${Date.now()}`,
       studentId: student.id,
@@ -119,12 +119,14 @@ export const StudentProvider = ({ children }) => {
       location: userLocation,
       time: new Date().toLocaleTimeString(),
       date: new Date().toLocaleDateString(),
-      status: 'Active Dispatch'
+      videoUrl: videoUrl || null,
+      alertMessage: customMessage || `🚨 EMERGENCY SOS ALERT: ${student.name} (${student.id}) requested immediate emergency assistance!`,
+      status: 'Active Emergency Alert'
     };
     setEmergencyAlerts((prev) => [sosRecord, ...prev]);
 
     addNotification({
-      title: `🚨 EMERGENCY SOS BROADCASTED from ${userLocation}`,
+      title: `🚨 EMERGENCY SOS BROADCASTED with Video & Voice to Admin!`,
       type: 'emergency'
     });
 
