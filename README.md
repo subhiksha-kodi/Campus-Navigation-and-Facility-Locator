@@ -34,8 +34,9 @@ It combines outdoor map routing, 3D indoor navigation, voice commands, and a rea
 **Who is it for?**
 
 - 🧑‍🎓 **Students** — find classrooms, facilities, and get help in emergencies
-- 👨‍🏫 **Faculty** — navigate campus and manage schedules
+- 👨‍🏫 **Faculty** — navigate campus, manage schedules and venue bookings
 - 👩‍💼 **Admins** — manage users, rooms, complaints, and monitor SOS alerts
+- 🪪 **Visitors** — register campus visits, get digital passes, and navigate the campus
 
 ---
 
@@ -48,7 +49,7 @@ It combines outdoor map routing, 3D indoor navigation, voice commands, and a rea
 </div>
 
 ```
-Presentation Layer   →   Student Portal | Faculty Portal | Admin Dashboard
+Presentation Layer   →   Student Portal | Faculty Portal | Admin Dashboard | Visitor Portal
 Navigation Engine    →   Outdoor Map    | 3D Indoor AR   | Voice Navigation
 Safety Layer         →   Emergency SOS  | MediaRecorder  | Admin Alert Monitor
 State Management     →   React Context  | LocalStorage   | JSON Data Stores
@@ -232,19 +233,23 @@ npm run dev
 
 ## 🔐 User Roles
 
-| Role | Access |
-|------|--------|
-| 🧑‍🎓 Student | Dashboard · Navigation · Complaints · SOS |
-| 👨‍🏫 Faculty | Dashboard · Navigation · SOS |
-| 👩‍💼 Admin | Everything above + Full Admin Panel |
+| Role | Portal | Access |
+|------|--------|--------|
+| 🧑‍🎓 Student | `/student/dashboard` | Dashboard · Campus Map · 3D Navigation · Voice Nav · Timetable · Attendance · Complaints · Notices · Cafeteria · SOS |
+| 👨‍🏫 Faculty | `/faculty/dashboard` | Dashboard · Timetable · Campus Map · Venue Booking · Substitution · Notices · Events |
+| 👩‍💼 Admin | `/admin/dashboard` | Everything above + Full Admin Panel (Users, Rooms, Timetables, Complaints, Analytics, Audit Logs) |
+| 🪪 Visitor | `/visitors` | Visitor Registration · Campus Visit Requests · Digital QR Pass · Campus Navigation Guide · Facility Locator · Campus Alerts |
 
-**Demo credentials**
+**Demo credentials** *(password: `password123` for all)*
 
 | Role | Email | Password |
 |------|-------|----------|
-| Admin | `admin@bitsathy.ac.in` | `admin123` |
-| Student | `student@bitsathy.ac.in` | `student123` |
-| Faculty | `faculty@bitsathy.ac.in` | `faculty123` |
+| 🧑‍🎓 Student | `hariharan.std@campus.edu` | `password123` |
+| 👨‍🏫 Faculty | `hariharan@campus.edu` | `password123` |
+| 👩‍💼 Admin | `dean@campus.edu` | `password123` |
+| 🪪 Visitor | `sanjana.parent@gmail.com` | `password123` |
+
+> **How to log in:** Go to `/login`, select your role from the **Login Role (Portal Access)** dropdown, and click **Sign In to WayFindYou**. Credentials are auto-filled when you select a role.
 
 ---
 
