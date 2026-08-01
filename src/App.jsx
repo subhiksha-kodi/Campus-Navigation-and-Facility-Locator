@@ -32,6 +32,21 @@ import {
   ProfileSettingsPage
 } from './pages/CampusServicesPages';
 
+// Student Module Pages
+import { StudentLogin } from './pages/student/StudentLogin';
+import { StudentDashboard } from './pages/student/StudentDashboard';
+import { StudentProfile } from './pages/student/StudentProfile';
+import { StudentAttendancePage } from './pages/student/StudentAttendancePage';
+import { StudentTimetablePage } from './pages/student/StudentTimetablePage';
+import { ComplaintPage } from './pages/student/ComplaintPage';
+import { ComplaintHistoryPage } from './pages/student/ComplaintHistoryPage';
+import { FeedbackPage } from './pages/student/FeedbackPage';
+import { StudentNoticesPage } from './pages/student/StudentNoticesPage';
+import { StudentEventsPage } from './pages/student/StudentEventsPage';
+import { StudentCafeteriaPage } from './pages/student/StudentCafeteriaPage';
+import { NotificationPage } from './pages/student/NotificationPage';
+import { StudentSettingsPage } from './pages/student/StudentSettingsPage';
+
 // Faculty Module Dedicated Pages
 import { FacultyLoginPage } from './pages/faculty/FacultyLoginPage';
 import { FacultyDashboardPage } from './pages/faculty/FacultyDashboardPage';
@@ -87,26 +102,41 @@ function AppRoutes() {
       <Route path="/" element={<LandingPage />} />
 
       {/* Main Authentication Suite */}
-      <Route path="/login" element={<LoginPage />} />
+      <Route path="/login" element={activeRole === 'student' ? <Navigate to="/student/dashboard" replace /> : <LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/otp" element={<OTPPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
       {/* Student / Visitor Core Modules */}
-      <Route path="/home" element={<HomeDashboard />} />
+      <Route path="/home" element={activeRole === 'student' ? <StudentDashboard /> : <HomeDashboard />} />
       <Route path="/map" element={<CampusMapPage />} />
       <Route path="/classrooms" element={<ClassroomFinderPage />} />
       <Route path="/facilities" element={<FacilityLocatorPage />} />
       <Route path="/voice-navigation" element={<VoiceNavPage />} />
 
       {/* General Campus Services */}
-      <Route path="/notices" element={<NoticesPage />} />
-      <Route path="/complaints" element={<ComplaintsPage />} />
-      <Route path="/timetable" element={<TimetablePage />} />
+      <Route path="/notices" element={activeRole === 'student' ? <StudentNoticesPage /> : <NoticesPage />} />
+      <Route path="/complaints" element={activeRole === 'student' ? <ComplaintPage /> : <ComplaintsPage />} />
+      <Route path="/timetable" element={activeRole === 'student' ? <StudentTimetablePage /> : <TimetablePage />} />
       <Route path="/visitors" element={<VisitorPortalPage />} />
-      <Route path="/emergency" element={<EmergencyPage />} />
-      <Route path="/profile" element={activeRole === 'admin' ? <AdminRouteGuard><AdminProfilePage /></AdminRouteGuard> : activeRole === 'faculty' ? <FacultyRouteGuard><FacultyProfilePage /></FacultyRouteGuard> : <ProfileSettingsPage />} />
-      <Route path="/settings" element={activeRole === 'admin' ? <AdminRouteGuard><AdminSystemSettingsPage /></AdminRouteGuard> : <ProfileSettingsPage />} />
+      <Route path="/emergency" element={activeRole === 'student' ? <StudentSOSPage /> : <EmergencyPage />} />
+      <Route path="/profile" element={activeRole === 'admin' ? <AdminRouteGuard><AdminProfilePage /></AdminRouteGuard> : activeRole === 'faculty' ? <FacultyRouteGuard><FacultyProfilePage /></FacultyRouteGuard> : activeRole === 'student' ? <StudentProfile /> : <ProfileSettingsPage />} />
+      <Route path="/settings" element={activeRole === 'admin' ? <AdminRouteGuard><AdminSystemSettingsPage /></AdminRouteGuard> : activeRole === 'student' ? <StudentSettingsPage /> : <ProfileSettingsPage />} />
+
+      {/* Dedicated Student Module Routes */}
+      <Route path="/student/login" element={<StudentLogin />} />
+      <Route path="/student/dashboard" element={<StudentDashboard />} />
+      <Route path="/student/profile" element={<StudentProfile />} />
+      <Route path="/student/attendance" element={<StudentAttendancePage />} />
+      <Route path="/student/timetable" element={<StudentTimetablePage />} />
+      <Route path="/student/complaints" element={<ComplaintPage />} />
+      <Route path="/student/complaints-history" element={<ComplaintHistoryPage />} />
+      <Route path="/student/feedback" element={<FeedbackPage />} />
+      <Route path="/student/notices" element={<StudentNoticesPage />} />
+      <Route path="/student/events" element={<StudentEventsPage />} />
+      <Route path="/student/cafeteria" element={<StudentCafeteriaPage />} />
+      <Route path="/student/notifications" element={<NotificationPage />} />
+      <Route path="/student/settings" element={<StudentSettingsPage />} />
 
       {/* Dedicated Faculty Module Protected Routes */}
       <Route path="/faculty/login" element={<FacultyLoginPage />} />
