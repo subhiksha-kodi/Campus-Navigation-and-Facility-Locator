@@ -25,7 +25,7 @@ import {
   ListOrdered,
   ClipboardList
 } from 'lucide-react';
-import { useRole } from '../../context/RoleContext';
+import { useRole, getRoleLabel } from '../../context/RoleContext';
 import { Badge } from '../ui/Badge';
 
 export const Sidebar = ({ isOpen, onClose }) => {
@@ -37,34 +37,21 @@ export const Sidebar = ({ isOpen, onClose }) => {
     {
       title: 'Overview',
       items: [
-        { name: 'Visitor Home', path: '/home?tab=home', icon: LayoutDashboard, roles: ['visitor'] }
-      ]
-    },
-    {
-      title: 'Visit Management',
-      items: [
-        { name: 'Request Campus Visit', path: '/home?tab=request', icon: Plus, roles: ['visitor'] },
-        { name: 'My Passes & Status', path: '/home?tab=passes', icon: QrCode, roles: ['visitor'] },
+        { name: 'Visitor Portal', path: '/visitors', icon: LayoutDashboard, roles: ['visitor'] }
       ]
     },
     {
       title: 'Campus Navigation',
       items: [
-        { name: 'Campus Map', path: '/home?tab=guide', icon: Map, roles: ['visitor'] },
-        { name: 'Facility Locator', path: '/home?tab=guide', icon: Building2, roles: ['visitor'] },
-        { name: 'Voice Assistant', path: '/home?tab=voice', icon: Mic, roles: ['visitor'] },
+        { name: 'Campus Map', path: '/map', icon: Map, roles: ['visitor'] },
+        { name: 'Facility Locator', path: '/facilities', icon: Building2, roles: ['visitor'] },
+        { name: 'Voice Navigation', path: '/voice-navigation', icon: Mic, roles: ['visitor'] },
       ]
     },
     {
       title: 'Announcements',
       items: [
-        { name: 'Notifications', path: '/home?tab=alerts', icon: Bell, roles: ['visitor'] },
-      ]
-    },
-    {
-      title: 'Post Visit',
-      items: [
-        { name: 'Feedback', path: '/home?tab=feedback', icon: Star, roles: ['visitor'] },
+        { name: 'Campus Notices', path: '/notices', icon: Bell, roles: ['visitor'] },
       ]
     },
     {
@@ -73,7 +60,7 @@ export const Sidebar = ({ isOpen, onClose }) => {
         { name: 'My Profile', path: '/profile', icon: User, roles: ['visitor'] },
         { name: 'Settings', path: '/settings', icon: Settings, roles: ['visitor'] },
       ]
-    }
+    },
   ] : activeRole === 'student' ? [
     {
       title: 'Overview',
@@ -215,13 +202,13 @@ export const Sidebar = ({ isOpen, onClose }) => {
         {/* Current Active User Profile Pill */}
         <div className="p-3.5 mx-3 mt-3 rounded-xl bg-slate-800/80 border border-slate-750 flex items-center gap-3">
           <img
-            src={user.avatar}
-            alt={user.name}
+            src={user?.avatar ?? 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=120&h=120&q=80'}
+            alt={user?.name ?? 'Guest'}
             className="w-8 h-8 rounded-full object-cover border border-slate-600"
           />
           <div className="flex-1 min-w-0">
-            <h5 className="text-xs font-semibold text-white truncate">{user.name}</h5>
-            <p className="text-[10px] text-slate-400 truncate">{user.roleLabel}</p>
+            <h5 className="text-xs font-semibold text-white truncate">{user?.name ?? 'Guest'}</h5>
+            <p className="text-[10px] text-slate-400 truncate">{user?.roleLabel ?? getRoleLabel(activeRole)}</p>
           </div>
           <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 shrink-0" title="Online" />
         </div>

@@ -128,14 +128,14 @@ export const AdminSidebar = ({ isOpen, onClose }) => {
         {/* Admin Profile Summary Card */}
         <div className="p-3 mx-3 mt-3 rounded-xl bg-slate-900 border border-slate-800 flex items-center gap-3">
           <img
-            src={user.avatar}
-            alt={user.name}
+            src={user?.avatar ?? 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=120&h=120&q=80'}
+            alt={user?.name ?? 'Administrator'}
             className="w-9 h-9 rounded-full object-cover border border-amber-400 shrink-0"
           />
           <div className="flex-1 min-w-0">
-            <h5 className="text-xs font-bold text-white truncate">{user.name}</h5>
-            <p className="text-[10px] text-amber-400 font-semibold truncate">{user.roleLabel}</p>
-            <p className="text-[9px] text-slate-400 truncate">{user.department}</p>
+            <h5 className="text-xs font-bold text-white truncate">{user?.name ?? 'Administrator'}</h5>
+            <p className="text-[10px] text-amber-400 font-semibold truncate">{user?.roleLabel ?? 'Campus Dean'}</p>
+            <p className="text-[9px] text-slate-400 truncate">{user?.department ?? 'Administration'}</p>
           </div>
         </div>
 

@@ -102,13 +102,24 @@ function AppRoutes() {
       <Route path="/" element={<LandingPage />} />
 
       {/* Main Authentication Suite */}
-      <Route path="/login" element={activeRole === 'student' ? <Navigate to="/student/dashboard" replace /> : <LoginPage />} />
+      <Route path="/login" element={
+        activeRole === 'admin' ? <Navigate to="/admin/dashboard" replace /> :
+        activeRole === 'faculty' ? <Navigate to="/faculty/dashboard" replace /> :
+        activeRole === 'student' ? <Navigate to="/student/dashboard" replace /> :
+        activeRole === 'visitor' ? <Navigate to="/visitors" replace /> :
+        <LoginPage />
+      } />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/otp" element={<OTPPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
       {/* Student / Visitor Core Modules */}
-      <Route path="/home" element={activeRole === 'student' ? <StudentDashboard /> : <HomeDashboard />} />
+      <Route path="/home" element={
+        activeRole === 'admin' ? <Navigate to="/admin/dashboard" replace /> :
+        activeRole === 'faculty' ? <Navigate to="/faculty/dashboard" replace /> :
+        activeRole === 'student' ? <StudentDashboard /> :
+        <HomeDashboard />
+      } />
       <Route path="/map" element={<CampusMapPage />} />
       <Route path="/classrooms" element={<ClassroomFinderPage />} />
       <Route path="/facilities" element={<FacilityLocatorPage />} />
@@ -125,7 +136,7 @@ function AppRoutes() {
 
       {/* Dedicated Student Module Routes */}
       <Route path="/student/login" element={<StudentLogin />} />
-      <Route path="/student/dashboard" element={<StudentDashboard />} />
+      <Route path="/student/dashboard" element={activeRole === 'admin' ? <Navigate to="/admin/dashboard" replace /> : activeRole === 'faculty' ? <Navigate to="/faculty/dashboard" replace /> : <StudentDashboard />} />
       <Route path="/student/profile" element={<StudentProfile />} />
       <Route path="/student/attendance" element={<StudentAttendancePage />} />
       <Route path="/student/timetable" element={<StudentTimetablePage />} />

@@ -7,8 +7,19 @@ import { Badge } from '../ui/Badge';
 
 export const Topbar = ({ onMenuClick }) => {
   const navigate = useNavigate();
-  const { activeRole, user } = useRole();
+  const { activeRole, user, logout } = useRole();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+
+  // Null-safe user values for when unauthenticated
+  const userName = user?.name ?? 'Guest';
+  const userEmail = user?.email ?? '';
+  const userAvatar = user?.avatar ?? 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=120&h=120&q=80';
+  const userRoleLabel = user?.roleLabel ?? getRoleLabel(activeRole);
+
+  const handleSignOut = () => {
+    logout();
+    navigate('/login');
+  };
 
   const notifications = [
     { id: 1, title: 'Central Library Closed Today', time: '10 mins ago', unread: true },
@@ -102,18 +113,18 @@ export const Topbar = ({ onMenuClick }) => {
           trigger={
             <button className="flex items-center gap-2 p-1 rounded-lg hover:bg-slate-100 transition-colors">
               <img
-                src={user.avatar}
-                alt={user.name}
+                src={userAvatar}
+                alt={userName}
                 className="w-8 h-8 rounded-full object-cover border border-slate-200"
               />
             </button>
           }
         >
           <div className="p-3 border-b border-slate-100">
-            <h5 className="text-xs font-semibold text-slate-900">{user.name}</h5>
-            <p className="text-[10px] text-slate-500">{user.email}</p>
+            <h5 className="text-xs font-semibold text-slate-900">{userName}</h5>
+            <p className="text-[10px] text-slate-500">{userEmail}</p>
             <div className="mt-1">
-              <Badge variant="info" size="sm">{user.roleLabel}</Badge>
+              <Badge variant="info" size="sm">{userRoleLabel}</Badge>
             </div>
           </div>
           <div className="py-1">
@@ -123,9 +134,9 @@ export const Topbar = ({ onMenuClick }) => {
             <NavLink to={activeRole === 'admin' ? '/admin/settings' : '/settings'} className="block px-4 py-2 text-xs text-slate-700 hover:bg-slate-50">
               Settings & Accessibility
             </NavLink>
-            <NavLink to="/" className="block px-4 py-2 text-xs text-red-600 hover:bg-red-50 font-medium">
+            <button onClick={handleSignOut} className="block w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 font-medium">
               Sign Out
-            </NavLink>
+            </button>
           </div>
         </Dropdown>
       </div>

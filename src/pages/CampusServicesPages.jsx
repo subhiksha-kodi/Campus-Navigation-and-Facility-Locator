@@ -379,8 +379,8 @@ export const VisitorPortalPage = () => {
   );
 
   const existingFeedbackSubmission = useMemo(
-    () => (selectedFeedbackVisit ? getFeedbackSubmissionForVisit(user.id, selectedFeedbackVisit.id) : null),
-    [selectedFeedbackVisit, user.id]
+    () => (selectedFeedbackVisit ? getFeedbackSubmissionForVisit(user?.id, selectedFeedbackVisit.id) : null),
+    [selectedFeedbackVisit, user?.id]
   );
 
   const feedbackDrawerOpen = queryTab === 'feedback';
@@ -1928,7 +1928,7 @@ export const ProfileSettingsPage = () => {
   const { addToast } = useToast();
   const [stairFreeDefault, setStairFreeDefault] = useState(true);
 
-  const isVisitor = user.role === 'visitor';
+  const isVisitor = user?.role === 'visitor';
 
   // Load visitor profile from localStorage if role is visitor
   const [visitorProfile, setVisitorProfile] = useState(() => {
@@ -1936,8 +1936,8 @@ export const ProfileSettingsPage = () => {
     const saved = localStorage.getItem('visitor_profile');
     if (saved) return JSON.parse(saved);
     return {
-      name: user.name,
-      email: user.email,
+      name: user?.name ?? '',
+      email: user?.email ?? '',
       phone: '+1 (555) 019-2834',
       idType: "Driver's License",
       idNumber: "DL-88392-CA"

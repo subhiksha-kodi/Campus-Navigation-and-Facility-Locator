@@ -70,15 +70,12 @@ export const RoleProvider = ({ children }) => {
         };
       }
     }
-    return {
-      ...DEMO_USERS.student,
-      roleLabel: 'Student'
-    };
+    return null;
   });
 
   const [activeRole, setActiveRole] = useState(() => {
     const validated = validateSessionToken();
-    return validated ? validated.role : 'student';
+    return validated ? validated.role : null;
   });
 
   const switchRole = (newRole) => {
@@ -111,15 +108,12 @@ export const RoleProvider = ({ children }) => {
   const logout = () => {
     localStorage.removeItem('wayfindyou_token');
     localStorage.removeItem('wayfindyou_user');
-    setUser({
-      ...DEMO_USERS.student,
-      roleLabel: 'Student'
-    });
-    setActiveRole('student');
+    setUser(null);
+    setActiveRole(null);
   };
 
   return (
-    <RoleContext.Provider value={{ activeRole, switchRole, user, login, logout, allRoles: Object.keys(DEMO_USERS) }}>
+    <RoleContext.Provider value={{ activeRole, switchRole, user, login, logout, isAuthenticated: !!activeRole, allRoles: Object.keys(DEMO_USERS) }}>
       {children}
     </RoleContext.Provider>
   );
