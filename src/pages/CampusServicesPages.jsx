@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import React, { useEffect, useMemo, useState } from 'react';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
   Bell,
   MessageSquare,
@@ -36,7 +36,11 @@ import {
   Coffee,
   Car,
   CreditCard,
-  CalendarDays
+  CalendarDays,
+  Star,
+  X,
+  UploadCloud,
+  Loader2,
 } from 'lucide-react';
 import { AppLayout } from '../components/layout/AppLayout';
 import { PageHeader } from '../components/layout/PageHeader';
@@ -48,6 +52,16 @@ import { Tabs } from '../components/ui/Tabs';
 import { CampusMap, CAMPUS_LOCATIONS } from '../components/navigation/CampusMap';
 import { useToast } from '../context/ToastContext';
 import { useRole } from '../context/RoleContext';
+import {
+  FEEDBACK_ASPECT_OPTIONS,
+  FEEDBACK_MEDIA_LIMITS,
+  formatFeedbackVisitLabel,
+  getFeedbackSubmissionForVisit,
+  saveFeedbackSubmission,
+} from '../services/feedbackService';
+
+const FEEDBACK_VISIT_STATUSES = ['checked-in', 'completed'];
+const REGULAR_PORTAL_TABS = ['home', 'request', 'passes', 'guide', 'alerts'];
 
 // 1. Notices Page
 export const NoticesPage = () => {
@@ -246,10 +260,24 @@ export const TimetablePage = () => {
 export const VisitorPortalPage = () => {
   const { addToast } = useToast();
   const { activeRole, switchRole, logout, user } = useRole();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const queryTab = new URLSearchParams(location.search).get('tab');
 
   // Internal states
   const [authTab, setAuthTab] = useState('login'); // 'login' | 'register'
   const [portalTab, setPortalTab] = useState('home'); // 'home' | 'request' | 'passes' | 'guide' | 'alerts'
+  const [feedbackSelectedVisitId, setFeedbackSelectedVisitId] = useState('');
+  const [feedbackOverallRating, setFeedbackOverallRating] = useState(0);
+  const [feedbackAspectRatings, setFeedbackAspectRatings] = useState(() =>
+    Object.fromEntries(FEEDBACK_ASPECT_OPTIONS.map((aspect) => [aspect.key, 0]))
+  );
+  const [feedbackComment, setFeedbackComment] = useState('');
+  const [feedbackPhotoDrafts, setFeedbackPhotoDrafts] = useState([]);
+  const [feedbackVideoDraft, setFeedbackVideoDraft] = useState(null);
+  const [feedbackUploadState, setFeedbackUploadState] = useState({ active: false, progress: 0, label: '', phase: 'idle' });
+  const [feedbackSubmitStatus, setFeedbackSubmitStatus] = useState('idle');
+  const [feedbackSubmitError, setFeedbackSubmitError] = useState('');
   
   // Auth Form State
   const [loginEmail, setLoginEmail] = useState('');
@@ -262,7 +290,8 @@ export const VisitorPortalPage = () => {
   
   // Visit Request Form State
   const [requestHost, setRequestHost] = useState('dr-chen');
-  const [requestPurpose, setRequestPurpose] = useState('Official Business');
+  const [requestPurpose, setRequestPurpose] = useState('Parent–Teacher Meeting');
+  const [customPurpose, setCustomPurpose] = useState('');
   const [requestDate, setRequestDate] = useState('2026-07-31');
   const [requestTime, setRequestTime] = useState('10:00');
 
@@ -291,17 +320,21 @@ export const VisitorPortalPage = () => {
       purpose: 'Guest Lecture on AI Ethics',
       date: '2026-07-31',
       time: '10:00 AM',
-      status: 'approved',
+      status: 'completed',
       qrCode: 'VPASS-88392',
+      completedAt: '2026-07-31T12:00:00.000Z',
+      checkedInAt: '2026-07-31T09:50:00.000Z',
     },
     {
       id: 'VPASS-10293',
       host: 'Dean of Admissions / Admin Office',
       purpose: 'Official Transcript Submission',
-      date: '2026-08-02',
+      date: '2026-08-01',
       time: '02:30 PM',
-      status: 'pending',
+      status: 'checked-in',
       qrCode: 'VPASS-10293',
+      completedAt: '2026-08-01T15:05:00.000Z',
+      checkedInAt: '2026-08-01T14:20:00.000Z',
     },
     {
       id: 'VPASS-44921',
@@ -327,6 +360,289 @@ export const VisitorPortalPage = () => {
     { id: 1, type: 'success', text: 'Your campus visit request for Dr. Robert Chen was APPROVED.', time: '10 mins ago' },
     { id: 2, type: 'error', text: 'Your campus visit request for Finance & Student Accounts Desk was REJECTED.', time: '2 hours ago' },
   ]);
+
+  const completedVisits = useMemo(
+    () => visits
+      .filter((visit) => FEEDBACK_VISIT_STATUSES.includes(visit.status))
+      .slice()
+      .sort((left, right) => {
+        const leftTime = new Date(left.completedAt || `${left.date} ${left.time}`).getTime();
+        const rightTime = new Date(right.completedAt || `${right.date} ${right.time}`).getTime();
+        return rightTime - leftTime;
+      }),
+    [visits]
+  );
+
+  const selectedFeedbackVisit = useMemo(
+    () => completedVisits.find((visit) => visit.id === feedbackSelectedVisitId) || completedVisits[0] || null,
+    [completedVisits, feedbackSelectedVisitId]
+  );
+
+  const existingFeedbackSubmission = useMemo(
+    () => (selectedFeedbackVisit ? getFeedbackSubmissionForVisit(user.id, selectedFeedbackVisit.id) : null),
+    [selectedFeedbackVisit, user.id]
+  );
+
+  const feedbackDrawerOpen = queryTab === 'feedback';
+
+  useEffect(() => {
+    if (!feedbackDrawerOpen) return undefined;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [feedbackDrawerOpen]);
+
+  useEffect(() => {
+    if (queryTab && REGULAR_PORTAL_TABS.includes(queryTab)) {
+      setPortalTab(queryTab);
+    }
+  }, [queryTab]);
+
+  useEffect(() => {
+    if (!feedbackDrawerOpen) return;
+    if (!completedVisits.length) {
+      setFeedbackSelectedVisitId('');
+      return;
+    }
+    if (!feedbackSelectedVisitId || !completedVisits.some((visit) => visit.id === feedbackSelectedVisitId)) {
+      setFeedbackSelectedVisitId(completedVisits[0].id);
+    }
+  }, [feedbackDrawerOpen, completedVisits, feedbackSelectedVisitId]);
+
+  useEffect(() => {
+    if (!selectedFeedbackVisit) return;
+    if (existingFeedbackSubmission) {
+      setFeedbackOverallRating(existingFeedbackSubmission.overallRating || 0);
+      setFeedbackAspectRatings({
+        navigationEase: existingFeedbackSubmission.aspectRatings?.navigationEase || 0,
+        hostExperience: existingFeedbackSubmission.aspectRatings?.hostExperience || 0,
+        checkInExperience: existingFeedbackSubmission.aspectRatings?.checkInExperience || 0,
+      });
+      setFeedbackComment(existingFeedbackSubmission.comment || '');
+      setFeedbackPhotoDrafts([]);
+      setFeedbackVideoDraft(null);
+      setFeedbackSubmitStatus('submitted');
+      setFeedbackSubmitError('');
+      setFeedbackUploadState({ active: false, progress: 100, label: 'Feedback already submitted', phase: 'complete' });
+      return;
+    }
+
+    setFeedbackOverallRating(0);
+    setFeedbackAspectRatings({
+      navigationEase: 0,
+      hostExperience: 0,
+      checkInExperience: 0,
+    });
+    setFeedbackComment('');
+    setFeedbackPhotoDrafts([]);
+    setFeedbackVideoDraft(null);
+    setFeedbackSubmitStatus('idle');
+    setFeedbackSubmitError('');
+    setFeedbackUploadState({ active: false, progress: 0, label: '', phase: 'idle' });
+  }, [existingFeedbackSubmission, selectedFeedbackVisit?.id]);
+
+  const setAspectRating = (aspectKey, value) => {
+    setFeedbackAspectRatings((current) => ({
+      ...current,
+      [aspectKey]: value,
+    }));
+  };
+
+  const readFileProgress = (file, onProgress) => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(reader.error || new Error(`Unable to load ${file.name}.`));
+    reader.onprogress = (event) => {
+      if (event.lengthComputable && onProgress) {
+        onProgress(event.loaded, event.total);
+      }
+    };
+    reader.onload = () => resolve();
+    reader.readAsArrayBuffer(file);
+  });
+
+  const closeFeedbackDrawer = () => {
+    const nextTab = portalTab && REGULAR_PORTAL_TABS.includes(portalTab) && portalTab !== 'home'
+      ? `/home?tab=${portalTab}`
+      : '/home';
+    navigate(nextTab);
+  };
+
+  const validateFeedbackFile = (file, kind) => {
+    const allowedTypes = kind === 'video' ? FEEDBACK_MEDIA_LIMITS.videoTypes : FEEDBACK_MEDIA_LIMITS.photoTypes;
+    const maxSize = kind === 'video' ? FEEDBACK_MEDIA_LIMITS.maxVideoSizeBytes : FEEDBACK_MEDIA_LIMITS.maxPhotoSizeBytes;
+    if (!allowedTypes.includes(file.type)) {
+      return `Unsupported ${kind} type for ${file.name}. Use ${kind === 'video' ? 'MP4 or MOV' : 'JPG, PNG, or HEIC'}.`;
+    }
+    if (file.size > maxSize) {
+      const sizeMb = Math.round((maxSize / (1024 * 1024)) * 10) / 10;
+      return `${file.name} is too large. ${kind === 'video' ? 'Video' : 'Photo'} uploads must be under ${sizeMb} MB.`;
+    }
+    return '';
+  };
+
+  const appendFeedbackDrafts = (incomingFiles, kind) => {
+    const acceptedFiles = incomingFiles.filter(Boolean).filter((file) => {
+      const validationMessage = validateFeedbackFile(file, kind);
+      if (validationMessage) {
+        addToast(validationMessage, 'error');
+        return false;
+      }
+      return true;
+    });
+
+    if (!acceptedFiles.length) return;
+
+    const nextDrafts = acceptedFiles.map((file) => ({
+      id: `${kind}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`,
+      file,
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      previewUrl: URL.createObjectURL(file),
+      progress: 0,
+      status: 'uploading',
+      kind,
+    }));
+
+    if (kind === 'photo') {
+      setFeedbackPhotoDrafts((current) => [...current, ...nextDrafts]);
+    } else {
+      if (feedbackVideoDraft?.previewUrl) {
+        URL.revokeObjectURL(feedbackVideoDraft.previewUrl);
+      }
+      setFeedbackVideoDraft(nextDrafts[0]);
+    }
+
+    void (async () => {
+      for (const draft of nextDrafts) {
+        try {
+          await readFileProgress(draft.file, (loaded, total) => {
+            const nextProgress = total ? Math.min(99, Math.max(1, Math.round((loaded / total) * 100))) : 100;
+            if (kind === 'photo') {
+              setFeedbackPhotoDrafts((current) => current.map((item) => (
+                item.id === draft.id ? { ...item, progress: nextProgress } : item
+              )));
+            } else {
+              setFeedbackVideoDraft((current) => (current && current.id === draft.id ? { ...current, progress: nextProgress } : current));
+            }
+            const totalBytes = acceptedFiles.reduce((sum, file) => sum + file.size, 0);
+            const processedBytes = acceptedFiles
+              .slice(0, nextDrafts.findIndex((item) => item.id === draft.id))
+              .reduce((sum, file) => sum + file.size, 0) + Math.round((loaded / total) * draft.file.size);
+            setFeedbackUploadState({
+              active: true,
+              phase: 'draft-upload',
+              label: `${kind === 'video' ? 'Video' : 'Photo'} upload in progress`,
+              progress: totalBytes ? Math.min(99, Math.round((processedBytes / totalBytes) * 100)) : nextProgress,
+            });
+          });
+
+          if (kind === 'photo') {
+            setFeedbackPhotoDrafts((current) => current.map((item) => (
+              item.id === draft.id ? { ...item, progress: 100, status: 'ready' } : item
+            )));
+          } else {
+            setFeedbackVideoDraft((current) => (current && current.id === draft.id ? { ...current, progress: 100, status: 'ready' } : current));
+          }
+        } catch (err) {
+          addToast(err.message || `Unable to prepare ${draft.name}.`, 'error');
+          if (kind === 'photo') {
+            setFeedbackPhotoDrafts((current) => current.filter((item) => item.id !== draft.id));
+          } else {
+            setFeedbackVideoDraft(null);
+          }
+        }
+      }
+      setFeedbackUploadState({ active: false, progress: 100, label: '', phase: 'idle' });
+    })();
+  };
+
+  const removeFeedbackPhoto = (draftId) => {
+    setFeedbackPhotoDrafts((current) => {
+      const draft = current.find((item) => item.id === draftId);
+      if (draft?.previewUrl) URL.revokeObjectURL(draft.previewUrl);
+      return current.filter((item) => item.id !== draftId);
+    });
+  };
+
+  const removeFeedbackVideo = () => {
+    if (feedbackVideoDraft?.previewUrl) {
+      URL.revokeObjectURL(feedbackVideoDraft.previewUrl);
+    }
+    setFeedbackVideoDraft(null);
+  };
+
+  const handleFeedbackSubmit = async (event) => {
+    event.preventDefault();
+    if (!selectedFeedbackVisit) return;
+    if (!feedbackOverallRating) {
+      setFeedbackSubmitError('Overall rating is required.');
+      return;
+    }
+    if (existingFeedbackSubmission) {
+      addToast('This visit already has feedback submitted.', 'info');
+      return;
+    }
+
+    setFeedbackSubmitError('');
+    setFeedbackSubmitStatus('submitting');
+    setFeedbackUploadState({ active: true, progress: 0, label: 'Saving feedback...', phase: 'saving' });
+
+    try {
+      await saveFeedbackSubmission({
+        visitor: user,
+        visit: selectedFeedbackVisit,
+        overallRating: feedbackOverallRating,
+        aspectRatings: feedbackAspectRatings,
+        comment: feedbackComment,
+        photos: feedbackPhotoDrafts.map((draft) => draft.file),
+        video: feedbackVideoDraft ? feedbackVideoDraft.file : null,
+        onProgress: ({ loadedBytes, totalBytes, fileName, phase }) => {
+          setFeedbackUploadState({
+            active: true,
+            phase,
+            label: fileName ? `Uploading ${fileName}` : 'Saving feedback media...',
+            progress: totalBytes ? Math.min(100, Math.round((loadedBytes / totalBytes) * 100)) : 100,
+          });
+        },
+      });
+
+      addToast('Feedback submitted successfully. Thanks for reflecting on your visit.', 'success');
+      setFeedbackSubmitStatus('submitted');
+      setFeedbackPhotoDrafts([]);
+      setFeedbackVideoDraft(null);
+      setFeedbackUploadState({ active: false, progress: 100, label: 'Submitted', phase: 'complete' });
+    } catch (err) {
+      setFeedbackSubmitStatus('idle');
+      setFeedbackUploadState({ active: false, progress: 0, label: '', phase: 'idle' });
+      setFeedbackSubmitError(err.message || 'Unable to submit feedback.');
+      addToast(err.message || 'Unable to submit feedback.', 'error');
+    }
+  };
+
+  const renderStarRating = (value, onChange, sizeClass = 'w-5 h-5') => (
+    <div className="flex items-center gap-1.5 flex-wrap">
+      {[1, 2, 3, 4, 5].map((score) => {
+        const active = score <= value;
+        return (
+          <button
+            key={score}
+            type="button"
+            onClick={() => onChange(score)}
+            className={`transition-transform hover:scale-105 ${active ? 'text-amber-400' : 'text-slate-300 hover:text-amber-300'}`}
+            aria-label={`Rate ${score} star${score > 1 ? 's' : ''}`}
+          >
+            <Star className={`${sizeClass} ${active ? 'fill-amber-400' : ''}`} />
+          </button>
+        );
+      })}
+      <span className="ml-2 text-[11px] text-slate-500 font-medium">{value ? `${value}/5` : 'Select a rating'}</span>
+    </div>
+  );
 
   // Handle Login Submission
   const handleLogin = (e) => {
@@ -383,11 +699,12 @@ export const VisitorPortalPage = () => {
       formattedTime = `${adjustedHour}:${minutes} ${ampm}`;
     } catch (err) {}
 
+    const purposeText = requestPurpose === 'others' ? (customPurpose || 'Others') : requestPurpose;
     const newId = `VPASS-${Math.floor(10000 + Math.random() * 90000)}`;
     const newVisit = {
       id: newId,
       host: hostLabel,
-      purpose: requestPurpose,
+      purpose: purposeText,
       date: requestDate,
       time: formattedTime,
       status: 'pending',
@@ -436,9 +753,11 @@ export const VisitorPortalPage = () => {
   // Calculate statistics
   const pendingCount = visits.filter(v => v.status === 'pending').length;
   const approvedCount = visits.filter(v => v.status === 'approved').length;
+  const checkedInCount = visits.filter(v => v.status === 'checked-in').length;
   const rejectedCount = visits.filter(v => v.status === 'rejected').length;
+  const activePassCount = visits.filter(v => ['approved', 'checked-in'].includes(v.status)).length;
 
-  const activeApprovedPass = visits.find(v => v.status === 'approved');
+  const activeApprovedPass = visits.find(v => ['approved', 'checked-in'].includes(v.status));
 
   // If not visitor, render Authentication Portal
   if (activeRole !== 'visitor') {
@@ -645,7 +964,7 @@ export const VisitorPortalPage = () => {
           <div className="space-y-1.5 text-center md:text-left">
             <div className="flex items-center justify-center md:justify-start gap-2">
               <Badge variant="info" size="sm">
-                Active Pass Count: {approvedCount}
+                Active Pass Count: {activePassCount}
               </Badge>
               <span className="text-xs text-slate-450 font-medium">• Guest ID verified</span>
             </div>
@@ -828,13 +1147,37 @@ export const VisitorPortalPage = () => {
                     options={HOSTS}
                   />
 
-                  <Input
+                  <Select
                     label="Purpose of Visit"
-                    placeholder="Guest interview, project discussion, student consultation"
                     value={requestPurpose}
                     onChange={(e) => setRequestPurpose(e.target.value)}
-                    required
+                    options={[
+                      { value: 'Parent–Teacher Meeting', label: 'Parent–Teacher Meeting' },
+                      { value: 'Meet Faculty', label: 'Meet Faculty' },
+                      { value: 'Meet HOD', label: 'Meet HOD' },
+                      { value: 'Official Meeting', label: 'Official Meeting' },
+                      { value: 'Seminar / Workshop', label: 'Seminar / Workshop' },
+                      { value: 'Placement Drive', label: 'Placement Drive' },
+                      { value: 'Recruitment Interview', label: 'Recruitment Interview' },
+                      { value: 'Guest Lecture', label: 'Guest Lecture' },
+                      { value: 'Alumni Visit', label: 'Alumni Visit' },
+                      { value: 'Sports Event', label: 'Sports Event' },
+                      { value: 'Cultural Event', label: 'Cultural Event' },
+                      { value: 'Training Program', label: 'Training Program' },
+                      { value: 'others', label: 'Others (Specify Below)' }
+                    ]}
                   />
+                  {requestPurpose === 'others' && (
+                    <div className="mt-2.5">
+                      <Input
+                        label="Custom Purpose of Visit"
+                        placeholder="Specify custom purpose of visit..."
+                        value={customPurpose}
+                        onChange={(e) => setCustomPurpose(e.target.value)}
+                        required
+                      />
+                    </div>
+                  )}
 
                   <div className="grid grid-cols-2 gap-4">
                     <Input
@@ -890,6 +1233,16 @@ export const VisitorPortalPage = () => {
                           Approved
                         </Badge>
                       )}
+                      {pass.status === 'checked-in' && (
+                        <Badge variant="info" size="sm" icon={CheckCircle2}>
+                          Checked In
+                        </Badge>
+                      )}
+                      {pass.status === 'completed' && (
+                        <Badge variant="navy" size="sm" icon={CheckCircle2}>
+                          Completed
+                        </Badge>
+                      )}
                       {pass.status === 'pending' && (
                         <Badge variant="warning" size="sm" icon={Clock}>
                           Pending Host
@@ -935,6 +1288,18 @@ export const VisitorPortalPage = () => {
                           onClick={() => setSelectedPassForQR(pass)}
                         >
                           View Gate QR Pass
+                        </Button>
+                      </div>
+                    )}
+                    {pass.status === 'checked-in' && (
+                      <div className="pt-2 flex justify-end">
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          icon={QrCode}
+                          onClick={() => setSelectedPassForQR(pass)}
+                        >
+                          View Visit QR Pass
                         </Button>
                       </div>
                     )}
@@ -1106,6 +1471,313 @@ export const VisitorPortalPage = () => {
         )}
 
       </div>
+
+      {/* Visitor Feedback Drawer */}
+      {feedbackDrawerOpen && activeRole === 'visitor' && (
+        <div className="fixed inset-0 z-50">
+          <button
+            type="button"
+            aria-label="Close feedback panel"
+            className="absolute inset-0 bg-slate-900/45 backdrop-blur-[2px]"
+            onClick={closeFeedbackDrawer}
+          />
+
+          <aside className="absolute right-0 top-0 h-full w-full max-w-[44rem] bg-slate-50 border-l border-slate-200 shadow-2xl flex flex-col">
+            <div className="px-5 py-4 border-b border-slate-200 bg-white flex items-start justify-between gap-4">
+              <div className="space-y-1">
+                <Badge variant="info" size="sm">Post-Visit Reflection</Badge>
+                <h3 className="text-lg font-extrabold text-slate-900">Visitor Feedback</h3>
+                <p className="text-xs text-slate-500 max-w-xl">
+                  Share how the full visit felt - from pass approval through campus navigation and meeting your host.
+                </p>
+              </div>
+              <Button variant="ghost" size="sm" icon={X} onClick={closeFeedbackDrawer} className="!px-2 !h-9">
+                Close
+              </Button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-5 space-y-4">
+              {!completedVisits.length ? (
+                <Card className="border-dashed border-slate-300 bg-white">
+                  <CardContent className="p-8 text-center space-y-3">
+                    <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mx-auto">
+                      <Star className="w-6 h-6" />
+                    </div>
+                    <h4 className="text-sm font-extrabold text-slate-900">Feedback opens up after your visit</h4>
+                    <p className="text-xs text-slate-500 max-w-md mx-auto">
+                      Once you complete a campus visit, your recent visit will appear here so you can rate the experience and attach media if you want.
+                    </p>
+                    <div className="pt-2 flex justify-center gap-2">
+                      <Button variant="outline" size="sm" onClick={() => {
+                        setPortalTab('passes');
+                        navigate('/home?tab=passes');
+                      }}>
+                        View My Passes
+                      </Button>
+                      <Button variant="primary" size="sm" onClick={closeFeedbackDrawer}>
+                        Close Panel
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : existingFeedbackSubmission ? (
+                <div className="space-y-4">
+                  <Card className="bg-emerald-50/60 border-emerald-200">
+                    <CardContent className="p-4 flex items-start gap-3">
+                      <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-extrabold text-emerald-950">Feedback already submitted for this visit</h4>
+                        <p className="text-xs text-emerald-900/80">
+                          This panel is read-only for reviewed visits so you can quickly confirm what was sent.
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {completedVisits.length > 1 && (
+                    <Select
+                      label="Select another completed visit"
+                      value={selectedFeedbackVisit?.id || ''}
+                      onChange={(e) => setFeedbackSelectedVisitId(e.target.value)}
+                      options={completedVisits.map((visit) => ({
+                        value: visit.id,
+                        label: `${visit.date} • ${visit.host}`,
+                      }))}
+                    />
+                  )}
+
+                  <Card>
+                    <CardContent className="p-5 space-y-4">
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Visit reviewed</p>
+                          <h4 className="text-sm font-extrabold text-slate-900 mt-1">{formatFeedbackVisitLabel(selectedFeedbackVisit)}</h4>
+                          <p className="text-xs text-slate-500 mt-1">
+                            Submitted on {new Date(existingFeedbackSubmission.createdAt).toLocaleString()}
+                          </p>
+                        </div>
+                        <Badge variant="success" size="sm">Locked</Badge>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                          <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold block">Overall rating</span>
+                          <div className="mt-2">{renderStarRating(existingFeedbackSubmission.overallRating, () => {}, 'w-4 h-4')}</div>
+                        </div>
+                        {FEEDBACK_ASPECT_OPTIONS.map((aspect) => (
+                          <div key={aspect.key} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                            <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold block">{aspect.label}</span>
+                            <div className="mt-2">{renderStarRating(existingFeedbackSubmission.aspectRatings?.[aspect.key] || 0, () => {}, 'w-3.5 h-3.5')}</div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {existingFeedbackSubmission.comment && (
+                        <div className="rounded-xl border border-slate-200 bg-white p-4">
+                          <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold block">Comment</span>
+                          <p className="text-sm text-slate-700 mt-2 leading-relaxed">{existingFeedbackSubmission.comment}</p>
+                        </div>
+                      )}
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="rounded-xl border border-slate-200 bg-white p-4">
+                          <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold block">Photos</span>
+                          <p className="text-sm text-slate-700 mt-2">
+                            {existingFeedbackSubmission.media?.photos?.length || 0} photo(s) attached
+                          </p>
+                        </div>
+                        <div className="rounded-xl border border-slate-200 bg-white p-4">
+                          <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold block">Video</span>
+                          <p className="text-sm text-slate-700 mt-2">
+                            {existingFeedbackSubmission.media?.video ? existingFeedbackSubmission.media.video.name : 'No video attached'}
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              ) : (
+                <form onSubmit={handleFeedbackSubmit} className="space-y-4">
+                  {completedVisits.length > 1 && (
+                    <Select
+                      label="Which completed visit is this about?"
+                      value={selectedFeedbackVisit?.id || ''}
+                      onChange={(e) => setFeedbackSelectedVisitId(e.target.value)}
+                      options={completedVisits.map((visit) => ({
+                        value: visit.id,
+                        label: `${visit.date} • ${visit.host}`,
+                      }))}
+                    />
+                  )}
+
+                  <Card>
+                    <CardContent className="p-5 space-y-4">
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Reviewing</p>
+                          <h4 className="text-sm font-extrabold text-slate-900 mt-1">{formatFeedbackVisitLabel(selectedFeedbackVisit)}</h4>
+                          <p className="text-xs text-slate-500 mt-1">Feedback is tied to the selected visit and your visitor account.</p>
+                        </div>
+                        <Badge variant="info" size="sm">Visitor ID: {user.idNumber}</Badge>
+                      </div>
+
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between gap-3">
+                          <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider">Overall rating</label>
+                          <span className="text-[11px] text-slate-500">Required</span>
+                        </div>
+                        {renderStarRating(feedbackOverallRating, setFeedbackOverallRating)}
+                        {feedbackSubmitError && !feedbackOverallRating && (
+                          <p className="text-xs text-red-600">{feedbackSubmitError}</p>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        {FEEDBACK_ASPECT_OPTIONS.map((aspect) => (
+                          <div key={aspect.key} className="rounded-xl border border-slate-200 bg-slate-50 p-3 space-y-2">
+                            <div className="flex items-center justify-between gap-2">
+                              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{aspect.label}</label>
+                              <span className="text-[10px] text-slate-400">Optional</span>
+                            </div>
+                            {renderStarRating(feedbackAspectRatings[aspect.key], (value) => setAspectRating(aspect.key, value), 'w-4 h-4')}
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Comment</label>
+                        <textarea
+                          rows={4}
+                          className="w-full p-3 text-sm bg-white border border-slate-300 rounded-xl text-slate-900 focus:ring-2 focus:ring-blue-600 focus:outline-none"
+                          placeholder="Tell us what worked well or what could improve..."
+                          value={feedbackComment}
+                          onChange={(e) => setFeedbackComment(e.target.value)}
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <label className="rounded-xl border border-dashed border-slate-300 bg-white p-4 cursor-pointer hover:border-blue-300 hover:bg-blue-50/30 transition-colors">
+                          <input
+                            type="file"
+                            className="hidden"
+                            accept="image/jpeg,image/png,image/heic,image/heif"
+                            multiple
+                            onChange={(e) => appendFeedbackDrafts(Array.from(e.target.files || []), 'photo')}
+                          />
+                          <div className="flex items-start gap-3">
+                            <div className="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                              <UploadCloud className="w-5 h-5" />
+                            </div>
+                            <div className="space-y-1">
+                              <p className="text-sm font-bold text-slate-900">Add photos</p>
+                              <p className="text-xs text-slate-500">JPG, PNG, HEIC up to 8 MB each</p>
+                            </div>
+                          </div>
+                        </label>
+
+                        <label className="rounded-xl border border-dashed border-slate-300 bg-white p-4 cursor-pointer hover:border-blue-300 hover:bg-blue-50/30 transition-colors">
+                          <input
+                            type="file"
+                            className="hidden"
+                            accept="video/mp4,video/quicktime"
+                            onChange={(e) => appendFeedbackDrafts(Array.from(e.target.files || []), 'video')}
+                          />
+                          <div className="flex items-start gap-3">
+                            <div className="w-10 h-10 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                              <UploadCloud className="w-5 h-5" />
+                            </div>
+                            <div className="space-y-1">
+                              <p className="text-sm font-bold text-slate-900">Add video</p>
+                              <p className="text-xs text-slate-500">Single MP4 or MOV up to 80 MB</p>
+                            </div>
+                          </div>
+                        </label>
+                      </div>
+
+                      {(feedbackPhotoDrafts.length > 0 || feedbackVideoDraft) && (
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <h5 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Selected media</h5>
+                            {feedbackUploadState.active && (
+                              <span className="text-[11px] text-slate-500">{feedbackUploadState.label}</span>
+                            )}
+                          </div>
+
+                          {feedbackUploadState.active && (
+                            <div className="rounded-xl border border-slate-200 bg-white p-3 space-y-2">
+                              <div className="flex items-center justify-between text-xs text-slate-600">
+                                <span>{feedbackUploadState.label || 'Uploading selected media'}</span>
+                                <span>{feedbackUploadState.progress}%</span>
+                              </div>
+                              <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
+                                <div className="h-full bg-blue-600 transition-all" style={{ width: `${feedbackUploadState.progress}%` }} />
+                              </div>
+                            </div>
+                          )}
+
+                          <div className="space-y-2">
+                            {feedbackPhotoDrafts.map((draft) => (
+                              <div key={draft.id} className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-3">
+                                <div className="flex items-center gap-3 min-w-0">
+                                  <div className="w-12 h-12 rounded-lg bg-slate-100 overflow-hidden shrink-0">
+                                    <img src={draft.previewUrl} alt={draft.name} className="w-full h-full object-cover" />
+                                  </div>
+                                  <div className="min-w-0">
+                                    <p className="text-sm font-semibold text-slate-900 truncate">{draft.name}</p>
+                                    <p className="text-[11px] text-slate-500">{Math.round(draft.size / 1024)} KB • {draft.status === 'ready' ? 'Ready' : `Uploading ${draft.progress}%`}</p>
+                                  </div>
+                                </div>
+                                <button type="button" onClick={() => removeFeedbackPhoto(draft.id)} className="text-slate-400 hover:text-red-600">
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            ))}
+
+                            {feedbackVideoDraft && (
+                              <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-3">
+                                <div className="flex items-center gap-3 min-w-0">
+                                  <div className="w-12 h-12 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                                    <UploadCloud className="w-5 h-5" />
+                                  </div>
+                                  <div className="min-w-0">
+                                    <p className="text-sm font-semibold text-slate-900 truncate">{feedbackVideoDraft.name}</p>
+                                    <p className="text-[11px] text-slate-500">{Math.round(feedbackVideoDraft.size / 1024 / 1024 * 10) / 10} MB • {feedbackVideoDraft.status === 'ready' ? 'Ready' : `Uploading ${feedbackVideoDraft.progress}%`}</p>
+                                  </div>
+                                </div>
+                                <button type="button" onClick={removeFeedbackVideo} className="text-slate-400 hover:text-red-600">
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {feedbackSubmitError && (
+                    <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-800">
+                      {feedbackSubmitError}
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-between gap-3 pb-4">
+                    <span className="text-[11px] text-slate-500">Your feedback is stored locally in this browser for the demo.</span>
+                    <div className="flex items-center gap-2">
+                      <Button variant="outline" size="sm" onClick={closeFeedbackDrawer}>
+                        Cancel
+                      </Button>
+                      <Button type="submit" variant="primary" size="sm" isLoading={feedbackSubmitStatus === 'submitting'} disabled={feedbackUploadState.active}>
+                        Submit Feedback
+                      </Button>
+                    </div>
+                  </div>
+                </form>
+              )}
+            </div>
+          </aside>
+        </div>
+      )}
 
       {/* QR PASS DETAIL MODAL */}
       {selectedPassForQR && (

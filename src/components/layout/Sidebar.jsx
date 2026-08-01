@@ -9,6 +9,7 @@ import {
   Calendar,
   Bell,
   MessageSquare,
+  Star,
   Users,
   ShieldAlert,
   User,
@@ -54,6 +55,12 @@ export const Sidebar = ({ isOpen, onClose }) => {
       title: 'Announcements',
       items: [
         { name: 'Notifications', path: '/home?tab=alerts', icon: Bell, roles: ['visitor'] },
+      ]
+    },
+    {
+      title: 'Post Visit',
+      items: [
+        { name: 'Feedback', path: '/home?tab=feedback', icon: Star, roles: ['visitor'] },
       ]
     },
     {
