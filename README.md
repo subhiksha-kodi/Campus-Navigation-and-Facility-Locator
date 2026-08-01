@@ -5,7 +5,7 @@
 
 [![React](https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react)](https://reactjs.org) [![Vite](https://img.shields.io/badge/Vite-5-646CFF?style=flat-square&logo=vite)](https://vitejs.dev) [![Three.js](https://img.shields.io/badge/Three.js-3D-black?style=flat-square&logo=three.js)](https://threejs.org) [![Leaflet](https://img.shields.io/badge/Leaflet-Map-199900?style=flat-square&logo=leaflet)](https://leafletjs.com) [![License](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](LICENSE)
 
-> Developed by **Team Velmora** · CSE Department · 2024–2025
+> Developed by **Team Velmora** ·
 
 ---
 
@@ -43,7 +43,7 @@ It combines outdoor map routing, 3D indoor navigation, voice commands, and a rea
 
 <div align="center">
 
-![System Architecture](docs/architecture-diagram.png)
+![App Flowchart](docs/flowchart.png)
 
 </div>
 
@@ -103,31 +103,43 @@ State Management     →   React Context  | LocalStorage   | JSON Data Stores
 
 <br>
 
-### Student Dashboard
+### 🏠 Student Dashboard
 
 ![Dashboard](docs/screenshots/dashboard.png)
 
+*Quick-access tiles for Campus Map, Classroom Finder, Voice Navigation, Timetable, Cafeteria, Complaints and more*
+
 <br>
 
-### Campus Map & Routing
+### 🏛️ AS Block — 3D AR Navigation
+
+![3D Navigation](docs/screenshots/3d-ar-navigation.png)
+
+*Indoor AR pathfinding with turn-by-turn guide and Voice Assistant Navigation*
+
+<br>
+
+### 🍽️ Smart Cafeteria — Digital Token System
+
+![Cafeteria](docs/screenshots/cafeteria.png)
+
+*Live queue token system with today's menu, availability status and cafeteria hours*
+
+<br>
+
+### 🗺️ Campus Map & Routing
 
 ![Campus Map](docs/screenshots/campus-map.png)
 
 <br>
 
-### 3D AR Indoor Navigation
-
-![3D Navigation](docs/screenshots/3d-ar-navigation.png)
-
-<br>
-
-### Emergency SOS — Video Recording
+### 🆘 Emergency SOS — Video Recording
 
 ![Emergency SOS](docs/screenshots/emergency-sos.png)
 
 <br>
 
-### Admin Control Panel
+### 👩‍💼 Admin Control Panel
 
 ![Admin](docs/screenshots/admin-dashboard.png)
 
@@ -179,7 +191,7 @@ Campus-Navigation-and-Facility-Locator/
 │           └── AuthContext.jsx
 │
 ├── docs/
-│   ├── architecture-diagram.png
+│   ├── flowchart.png
 │   └── screenshots/
 │
 ├── TEAM.md
@@ -214,8 +226,6 @@ npm install
 ```bash
 npm run dev
 ```
-
-Open **http://localhost:5173** in your browser.
 
 ---
 
@@ -287,7 +297,7 @@ See [TEAM.md](TEAM.md) for full details.
 | Document | Link |
 |----------|------|
 | Software Requirements Specification | [SRS.docx](Software%20Requirements%20Specification%20(SRS).docx) |
-| Architecture Diagram | [architecture-diagram.png](docs/architecture-diagram.png) |
+| App Flowchart | [flowchart.png](docs/flowchart.png) |
 | Team Details | [TEAM.md](TEAM.md) |
 
 ---
