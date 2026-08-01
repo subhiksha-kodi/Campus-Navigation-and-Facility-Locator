@@ -63,6 +63,7 @@ import { AdminNotificationsPage } from './pages/admin/AdminNotificationsPage';
 import { AdminComplaintsMonitoringPage } from './pages/admin/AdminComplaintsMonitoringPage';
 import { AdminHeatmapPage } from './pages/admin/AdminHeatmapPage';
 import { AdminAnalyticsPage } from './pages/admin/AdminAnalyticsPage';
+import { AdminFeedbackPage } from './pages/admin/AdminFeedbackPage';
 import { AdminReportsPage } from './pages/admin/AdminReportsPage';
 import { AdminAuditLogsPage } from './pages/admin/AdminAuditLogsPage';
 import { AdminSystemSettingsPage } from './pages/admin/AdminSystemSettingsPage';
@@ -142,6 +143,7 @@ export function App() {
                 <Route path="/admin/issues" element={<AdminRouteGuard><AdminComplaintsMonitoringPage /></AdminRouteGuard>} />
                 <Route path="/admin/heatmap" element={<AdminRouteGuard><AdminHeatmapPage /></AdminRouteGuard>} />
                 <Route path="/admin/analytics" element={<AdminRouteGuard><AdminAnalyticsPage /></AdminRouteGuard>} />
+                <Route path="/admin/feedback" element={<AdminRouteGuard><AdminFeedbackPage /></AdminRouteGuard>} />
                 <Route path="/admin/reports" element={<AdminRouteGuard><AdminReportsPage /></AdminRouteGuard>} />
                 <Route path="/admin/audit-logs" element={<AdminRouteGuard><AdminAuditLogsPage /></AdminRouteGuard>} />
                 <Route path="/admin/settings" element={<AdminRouteGuard><AdminSystemSettingsPage /></AdminRouteGuard>} />

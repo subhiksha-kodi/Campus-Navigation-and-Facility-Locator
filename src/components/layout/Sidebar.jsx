@@ -97,6 +97,7 @@ export const Sidebar = ({ isOpen, onClose }) => {
       title: 'Services & Operations',
       items: [
         { name: 'Complaints & Issues', path: '/complaints', icon: MessageSquare, roles: ['student', 'faculty', 'security', 'admin'] },
+        { name: 'Visitor Feedback', path: '/admin/feedback', icon: Star, roles: ['admin'] },
         { name: 'Visitor Passes', path: '/visitors', icon: Users, roles: ['visitor', 'security', 'admin'] },
         { name: 'Admin Operations', path: '/admin', icon: Shield, roles: ['admin'] },
       ]

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Search,
@@ -31,7 +31,12 @@ import {
   FileText,
   CheckCircle2,
   AlertTriangle,
-  Navigation
+  Navigation,
+  Star,
+  X,
+  UploadCloud,
+  Trash2,
+  Loader2,
 } from 'lucide-react';
 import { AppLayout } from '../components/layout/AppLayout';
 import { SearchBar } from '../components/ui/SearchBar';
@@ -45,6 +50,14 @@ import { Input, Select } from '../components/ui/Input';
 import { Tabs } from '../components/ui/Tabs';
 import { useRole } from '../context/RoleContext';
 import { useToast } from '../context/ToastContext';
+import {
+  FEEDBACK_ASPECT_OPTIONS,
+  FEEDBACK_MEDIA_LIMITS,
+  formatFeedbackVisitLabel,
+  getFeedbackSubmissionForVisit,
+  saveFeedbackSubmission,
+  deleteFeedbackSubmission,
+} from '../services/feedbackService';
 
 export const HomeDashboard = () => {
   const navigate = useNavigate();
@@ -53,6 +66,9 @@ export const HomeDashboard = () => {
   
   const [searchParams, setSearchParams] = useSearchParams();
   const portalTab = searchParams.get('tab') || 'home';
+  const displayTab = portalTab === 'feedback' ? 'home' : portalTab;
+  const feedbackDrawerOpen = portalTab === 'feedback';
+  const isDemoMode = import.meta.env.DEV;
 
   const setPortalTab = (tabId) => {
     setSearchParams({ tab: tabId });
@@ -81,7 +97,25 @@ export const HomeDashboard = () => {
 
   const [visits, setVisits] = useState(() => {
     const saved = localStorage.getItem('visitor_visits');
-    if (saved) return JSON.parse(saved);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      const hasCompletedVisit = parsed.some((visit) => ['checked-in', 'completed'].includes(visit.status));
+      if (!hasCompletedVisit && parsed.length > 0) {
+        const hydrated = parsed.map((visit, index) => (
+          index === 0
+            ? {
+                ...visit,
+                status: 'completed',
+                completedAt: new Date().toISOString(),
+                checkedInAt: visit.checkedInAt || new Date(Date.now() - 45 * 60 * 1000).toISOString(),
+              }
+            : visit
+        ));
+        localStorage.setItem('visitor_visits', JSON.stringify(hydrated));
+        return hydrated;
+      }
+      return parsed;
+    }
     const defaults = [
       {
         id: 'VPASS-88392',
@@ -89,12 +123,16 @@ export const HomeDashboard = () => {
         purpose: 'Guest Lecture on AI Ethics',
         date: '2026-07-31',
         time: '10:00 AM',
-        status: 'approved',
+        status: 'completed',
         qrCode: 'VPASS-88392',
+        completedAt: new Date().toISOString(),
+        checkedInAt: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
         timeline: [
           { status: 'Requested', timestamp: new Date(Date.now() - 3600000).toISOString(), note: 'Pass request submitted by visitor' },
           { status: 'Pending Approval', timestamp: new Date(Date.now() - 3000000).toISOString(), note: 'Awaiting host verification' },
-          { status: 'Approved', timestamp: new Date(Date.now() - 600000).toISOString(), note: 'Host approved gate entry' }
+          { status: 'Approved', timestamp: new Date(Date.now() - 600000).toISOString(), note: 'Host approved gate entry' },
+          { status: 'Checked In', timestamp: new Date(Date.now() - 2700000).toISOString(), note: 'Visitor checked in at the gate' },
+          { status: 'Completed', timestamp: new Date().toISOString(), note: 'Visit completed; ready for feedback' }
         ]
       },
       {
@@ -156,11 +194,24 @@ export const HomeDashboard = () => {
   ];
 
   const [requestHost, setRequestHost] = useState('dr-chen');
-  const [requestPurpose, setRequestPurpose] = useState('');
+  const [requestPurpose, setRequestPurpose] = useState('Parent–Teacher Meeting');
+  const [customPurpose, setCustomPurpose] = useState('');
   const [requestDate, setRequestDate] = useState('2026-07-31');
   const [requestTime, setRequestTime] = useState('10:00');
 
   const [selectedPassForQR, setSelectedPassForQR] = useState(null);
+
+  const [feedbackSelectedVisitId, setFeedbackSelectedVisitId] = useState('');
+  const [feedbackOverallRating, setFeedbackOverallRating] = useState(0);
+  const [feedbackAspectRatings, setFeedbackAspectRatings] = useState(() =>
+    Object.fromEntries(FEEDBACK_ASPECT_OPTIONS.map((aspect) => [aspect.key, 0]))
+  );
+  const [feedbackComment, setFeedbackComment] = useState('');
+  const [feedbackPhotoDrafts, setFeedbackPhotoDrafts] = useState([]);
+  const [feedbackVideoDraft, setFeedbackVideoDraft] = useState(null);
+  const [feedbackUploadState, setFeedbackUploadState] = useState({ active: false, progress: 0, label: '', phase: 'idle' });
+  const [feedbackSubmitStatus, setFeedbackSubmitStatus] = useState('idle');
+  const [feedbackSubmitError, setFeedbackSubmitError] = useState('');
 
   const [selectedGuideLoc, setSelectedGuideLoc] = useState(CAMPUS_LOCATIONS[0]);
   
@@ -239,6 +290,16 @@ export const HomeDashboard = () => {
   };
   const [guideCategory, setGuideCategory] = useState('all');
   const [guideSearchQuery, setGuideSearchQuery] = useState('');
+  const completedVisits = visits.filter((visit) => ['checked-in', 'completed'].includes(visit.status));
+  const selectedFeedbackVisit = useMemo(
+    () => completedVisits.find((visit) => visit.id === feedbackSelectedVisitId) || completedVisits[0] || null,
+    [completedVisits, feedbackSelectedVisitId]
+  );
+  const [feedbackTrigger, setFeedbackTrigger] = useState(0);
+  const existingFeedbackSubmission = useMemo(
+    () => (selectedFeedbackVisit ? getFeedbackSubmissionForVisit(user.id, selectedFeedbackVisit.id) : null),
+    [selectedFeedbackVisit, user.id, feedbackTrigger]
+  );
 
   const HOSTS = [
     { value: 'dr-chen', label: 'Dr. Robert Chen (Computer Science Dept)' },
@@ -268,11 +329,12 @@ export const HomeDashboard = () => {
       formattedTime = `${adjustedHour}:${minutes} ${ampm}`;
     } catch (err) {}
 
+    const purposeText = requestPurpose === 'others' ? (customPurpose || 'Others') : requestPurpose;
     const newId = `VPASS-${Math.floor(10000 + Math.random() * 90000)}`;
     const newVisit = {
       id: newId,
       host: hostLabel,
-      purpose: requestPurpose,
+      purpose: purposeText,
       date: requestDate,
       time: formattedTime,
       status: 'pending',
@@ -471,6 +533,327 @@ export const HomeDashboard = () => {
     }
   };
 
+  useEffect(() => {
+    if (!feedbackDrawerOpen) return undefined;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [feedbackDrawerOpen]);
+
+  useEffect(() => {
+    if (!feedbackDrawerOpen) return;
+    if (!completedVisits.length) {
+      setFeedbackSelectedVisitId('');
+      return;
+    }
+    if (!feedbackSelectedVisitId || !completedVisits.some((visit) => visit.id === feedbackSelectedVisitId)) {
+      setFeedbackSelectedVisitId(completedVisits[0].id);
+    }
+  }, [feedbackDrawerOpen, completedVisits, feedbackSelectedVisitId]);
+
+  useEffect(() => {
+    if (!selectedFeedbackVisit) return;
+
+    if (existingFeedbackSubmission) {
+      setFeedbackOverallRating(existingFeedbackSubmission.overallRating || 0);
+      setFeedbackAspectRatings({
+        navigationEase: existingFeedbackSubmission.aspectRatings?.navigationEase || 0,
+        hostExperience: existingFeedbackSubmission.aspectRatings?.hostExperience || 0,
+        checkInExperience: existingFeedbackSubmission.aspectRatings?.checkInExperience || 0,
+      });
+      setFeedbackComment(existingFeedbackSubmission.comment || '');
+      setFeedbackPhotoDrafts([]);
+      setFeedbackVideoDraft(null);
+      setFeedbackSubmitStatus('submitted');
+      setFeedbackSubmitError('');
+      setFeedbackUploadState({ active: false, progress: 100, label: 'Feedback already submitted', phase: 'complete' });
+      return;
+    }
+
+    setFeedbackOverallRating(0);
+    setFeedbackAspectRatings({ navigationEase: 0, hostExperience: 0, checkInExperience: 0 });
+    setFeedbackComment('');
+    setFeedbackPhotoDrafts([]);
+    setFeedbackVideoDraft(null);
+    setFeedbackSubmitStatus('idle');
+    setFeedbackSubmitError('');
+    setFeedbackUploadState({ active: false, progress: 0, label: '', phase: 'idle' });
+  }, [existingFeedbackSubmission, selectedFeedbackVisit?.id]);
+
+  const renderStarRating = (value, onChange, sizeClass = 'w-5 h-5') => (
+    <div className="flex items-center gap-1.5 flex-wrap">
+      {[1, 2, 3, 4, 5].map((score) => {
+        const active = score <= value;
+        return (
+          <button
+            key={score}
+            type="button"
+            onClick={() => onChange(score)}
+            className={`transition-transform hover:scale-105 ${active ? 'text-amber-400' : 'text-slate-300 hover:text-amber-300'}`}
+            aria-label={`Rate ${score} star${score > 1 ? 's' : ''}`}
+          >
+            <Star className={`${sizeClass} ${active ? 'fill-amber-400' : ''}`} />
+          </button>
+        );
+      })}
+      <span className="ml-2 text-[11px] text-slate-500 font-medium">{value ? `${value}/5` : 'Select a rating'}</span>
+    </div>
+  );
+
+  const setAspectRating = (aspectKey, value) => {
+    setFeedbackAspectRatings((current) => ({
+      ...current,
+      [aspectKey]: value,
+    }));
+  };
+
+  const readFileProgress = (file, onProgress) => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(reader.error || new Error(`Unable to load ${file.name}.`));
+    reader.onprogress = (event) => {
+      if (event.lengthComputable && onProgress) {
+        onProgress(event.loaded, event.total);
+      }
+    };
+    reader.onload = () => resolve();
+    reader.readAsArrayBuffer(file);
+  });
+
+  const validateFeedbackFile = (file, kind) => {
+    const allowedTypes = kind === 'video' ? FEEDBACK_MEDIA_LIMITS.videoTypes : FEEDBACK_MEDIA_LIMITS.photoTypes;
+    const maxSize = kind === 'video' ? FEEDBACK_MEDIA_LIMITS.maxVideoSizeBytes : FEEDBACK_MEDIA_LIMITS.maxPhotoSizeBytes;
+    if (!allowedTypes.includes(file.type)) {
+      return `Unsupported ${kind} type for ${file.name}. Use ${kind === 'video' ? 'MP4 or MOV' : 'JPG, PNG, or HEIC'}.`;
+    }
+    if (file.size > maxSize) {
+      const sizeMb = Math.round((maxSize / (1024 * 1024)) * 10) / 10;
+      return `${file.name} is too large. ${kind === 'video' ? 'Video' : 'Photo'} uploads must be under ${sizeMb} MB.`;
+    }
+    return '';
+  };
+
+  const appendFeedbackDrafts = (incomingFiles, kind) => {
+    const acceptedFiles = incomingFiles.filter(Boolean).filter((file) => {
+      const validationMessage = validateFeedbackFile(file, kind);
+      if (validationMessage) {
+        addToast(validationMessage, 'error');
+        return false;
+      }
+      return true;
+    });
+
+    if (!acceptedFiles.length) return;
+
+    const nextDrafts = acceptedFiles.map((file) => ({
+      id: `${kind}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`,
+      file,
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      previewUrl: URL.createObjectURL(file),
+      progress: 0,
+      status: 'uploading',
+      kind,
+    }));
+
+    if (kind === 'photo') {
+      setFeedbackPhotoDrafts((current) => [...current, ...nextDrafts]);
+    } else {
+      if (feedbackVideoDraft?.previewUrl) {
+        URL.revokeObjectURL(feedbackVideoDraft.previewUrl);
+      }
+      setFeedbackVideoDraft(nextDrafts[0]);
+    }
+
+    void (async () => {
+      for (const draft of nextDrafts) {
+        try {
+          await readFileProgress(draft.file, (loaded, total) => {
+            const nextProgress = total ? Math.min(99, Math.max(1, Math.round((loaded / total) * 100))) : 100;
+            if (kind === 'photo') {
+              setFeedbackPhotoDrafts((current) => current.map((item) => (
+                item.id === draft.id ? { ...item, progress: nextProgress } : item
+              )));
+            } else {
+              setFeedbackVideoDraft((current) => (current && current.id === draft.id ? { ...current, progress: nextProgress } : current));
+            }
+
+            const totalBytes = acceptedFiles.reduce((sum, file) => sum + file.size, 0);
+            const processedBytes = acceptedFiles
+              .slice(0, nextDrafts.findIndex((item) => item.id === draft.id))
+              .reduce((sum, file) => sum + file.size, 0) + Math.round((loaded / total) * draft.file.size);
+            setFeedbackUploadState({
+              active: true,
+              phase: 'draft-upload',
+              label: `${kind === 'video' ? 'Video' : 'Photo'} upload in progress`,
+              progress: totalBytes ? Math.min(99, Math.round((processedBytes / totalBytes) * 100)) : nextProgress,
+            });
+          });
+
+          if (kind === 'photo') {
+            setFeedbackPhotoDrafts((current) => current.map((item) => (
+              item.id === draft.id ? { ...item, progress: 100, status: 'ready' } : item
+            )));
+          } else {
+            setFeedbackVideoDraft((current) => (current && current.id === draft.id ? { ...current, progress: 100, status: 'ready' } : current));
+          }
+        } catch (err) {
+          addToast(err.message || `Unable to prepare ${draft.name}.`, 'error');
+          if (kind === 'photo') {
+            setFeedbackPhotoDrafts((current) => current.filter((item) => item.id !== draft.id));
+          } else {
+            setFeedbackVideoDraft(null);
+          }
+        }
+      }
+      setFeedbackUploadState({ active: false, progress: 100, label: '', phase: 'idle' });
+    })();
+  };
+
+  const removeFeedbackPhoto = (draftId) => {
+    setFeedbackPhotoDrafts((current) => {
+      const draft = current.find((item) => item.id === draftId);
+      if (draft?.previewUrl) URL.revokeObjectURL(draft.previewUrl);
+      return current.filter((item) => item.id !== draftId);
+    });
+  };
+
+  const removeFeedbackVideo = () => {
+    if (feedbackVideoDraft?.previewUrl) {
+      URL.revokeObjectURL(feedbackVideoDraft.previewUrl);
+    }
+    setFeedbackVideoDraft(null);
+  };
+
+  const handleSimulateCompletedVisit = () => {
+    const mockVisitId = `VPASS-DEMO-${Date.now().toString().slice(-5)}`;
+
+    setVisits((currentVisits) => {
+      const reusableCompletedVisit = currentVisits.find((visit) => ['checked-in', 'completed'].includes(visit.status));
+      if (reusableCompletedVisit) {
+        setFeedbackSelectedVisitId(reusableCompletedVisit.id);
+        return currentVisits.map((visit) => (
+          visit.id === reusableCompletedVisit.id
+            ? {
+                ...visit,
+                status: 'completed',
+                completedAt: visit.completedAt || new Date().toISOString(),
+                checkedInAt: visit.checkedInAt || new Date(Date.now() - 45 * 60 * 1000).toISOString(),
+              }
+            : visit
+        ));
+      }
+
+      const demoVisit = {
+        id: mockVisitId,
+        host: 'Dr. Robert Chen (Computer Science Dept)',
+        purpose: 'Demo Visit for Feedback Walkthrough',
+        date: new Date().toISOString().split('T')[0],
+        time: '03:15 PM',
+        status: 'completed',
+        qrCode: mockVisitId,
+        completedAt: new Date().toISOString(),
+        checkedInAt: new Date(Date.now() - 40 * 60 * 1000).toISOString(),
+        timeline: [
+          { status: 'Requested', timestamp: new Date(Date.now() - 5400000).toISOString(), note: 'Demo visit seeded for feedback testing' },
+          { status: 'Approved', timestamp: new Date(Date.now() - 4800000).toISOString(), note: 'Simulated host approval' },
+          { status: 'Checked In', timestamp: new Date(Date.now() - 2400000).toISOString(), note: 'Simulated gate check-in' },
+          { status: 'Completed', timestamp: new Date().toISOString(), note: 'Demo visit completed' },
+        ],
+      };
+
+      setFeedbackSelectedVisitId(mockVisitId);
+      return [demoVisit, ...currentVisits];
+    });
+
+    setPortalTab('feedback');
+    addToast('Demo completed visit created. You can now submit feedback.', 'success');
+  };
+
+  const handleResetDemoFeedback = async () => {
+    if (!selectedFeedbackVisit) return;
+    // Only allow reset for demo visits (seeded by simulate flow)
+    if (!selectedFeedbackVisit.id || !selectedFeedbackVisit.id.startsWith('VPASS-DEMO-')) {
+      addToast('Reset is only available for demo visits.', 'info');
+      return;
+    }
+
+    const existing = getFeedbackSubmissionForVisit(user.id, selectedFeedbackVisit.id);
+    if (!existing) {
+      addToast('No demo feedback to reset.', 'info');
+      return;
+    }
+
+    try {
+      await deleteFeedbackSubmission(existing.id);
+      setFeedbackTrigger((prev) => prev + 1);
+      // reset local form state
+      setFeedbackSubmitStatus('idle');
+      setFeedbackOverallRating(0);
+      setFeedbackAspectRatings(Object.fromEntries(FEEDBACK_ASPECT_OPTIONS.map((a) => [a.key, 0])));
+      setFeedbackComment('');
+      setFeedbackPhotoDrafts([]);
+      setFeedbackVideoDraft(null);
+      setFeedbackUploadState({ active: false, progress: 0, label: '', phase: 'idle' });
+      addToast('Demo feedback reset. You may re-fill and submit again.', 'success');
+    } catch (err) {
+      addToast(err.message || 'Unable to reset demo feedback.', 'error');
+    }
+  };
+
+  const handleFeedbackSubmit = async (event) => {
+    event.preventDefault();
+    if (!selectedFeedbackVisit) return;
+    if (!feedbackOverallRating) {
+      setFeedbackSubmitError('Overall rating is required.');
+      return;
+    }
+    if (existingFeedbackSubmission) {
+      addToast('This visit already has feedback submitted.', 'info');
+      return;
+    }
+
+    setFeedbackSubmitError('');
+    setFeedbackSubmitStatus('submitting');
+    setFeedbackUploadState({ active: true, progress: 0, label: 'Saving feedback...', phase: 'saving' });
+
+    try {
+      await saveFeedbackSubmission({
+        visitor: user,
+        visit: selectedFeedbackVisit,
+        overallRating: feedbackOverallRating,
+        aspectRatings: feedbackAspectRatings,
+        comment: feedbackComment,
+        photos: feedbackPhotoDrafts.map((draft) => draft.file),
+        video: feedbackVideoDraft ? feedbackVideoDraft.file : null,
+        onProgress: ({ loadedBytes, totalBytes, fileName, phase }) => {
+          setFeedbackUploadState({
+            active: true,
+            phase,
+            label: fileName ? `Uploading ${fileName}` : 'Saving feedback media...',
+            progress: totalBytes ? Math.min(100, Math.round((loadedBytes / totalBytes) * 100)) : 100,
+          });
+        },
+      });
+
+      addToast('Feedback submitted successfully. Thanks for reflecting on your visit.', 'success');
+      setFeedbackTrigger((prev) => prev + 1);
+      setFeedbackSubmitStatus('submitted');
+      setFeedbackPhotoDrafts([]);
+      setFeedbackVideoDraft(null);
+      setFeedbackUploadState({ active: false, progress: 100, label: 'Submitted', phase: 'complete' });
+    } catch (err) {
+      setFeedbackSubmitStatus('idle');
+      setFeedbackUploadState({ active: false, progress: 0, label: '', phase: 'idle' });
+      setFeedbackSubmitError(err.message || 'Unable to submit feedback.');
+      addToast(err.message || 'Unable to submit feedback.', 'error');
+    }
+  };
+
   if (activeRole === 'visitor') {
     return (
       <AppLayout>
@@ -517,7 +900,7 @@ export const HomeDashboard = () => {
 
         <div className="mb-6 bg-white p-1 border border-slate-200 rounded-xl shadow-subtle">
           <Tabs
-            activeTab={portalTab}
+            activeTab={displayTab}
             onChange={(tabId) => setPortalTab(tabId)}
             tabs={[
               { id: 'home', label: 'Guest Dashboard', icon: User },
@@ -533,7 +916,7 @@ export const HomeDashboard = () => {
 
         <div className="space-y-6">
           
-          {portalTab === 'home' && (
+          {displayTab === 'home' && (
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
               <div className="lg:col-span-5">
                 {activeApprovedPass ? (
@@ -668,7 +1051,7 @@ export const HomeDashboard = () => {
             </div>
           )}
 
-          {portalTab === 'request' && (
+          {displayTab === 'request' && (
             <div className="max-w-2xl mx-auto">
               <Card className="shadow-md border border-slate-200">
                 <CardHeader className="border-b border-slate-100 pb-3">
@@ -731,13 +1114,37 @@ export const HomeDashboard = () => {
                           <FileText className="w-5 h-5" />
                         </div>
                         <div className="flex-1">
-                          <Input
+                          <Select
                             label="Purpose of Visit"
-                            placeholder="e.g., Parent-Teacher Meeting, Admissions Enquiry, Campus Tour"
                             value={requestPurpose}
                             onChange={(e) => setRequestPurpose(e.target.value)}
-                            required
+                            options={[
+                              { value: 'Parent–Teacher Meeting', label: 'Parent–Teacher Meeting' },
+                              { value: 'Meet Faculty', label: 'Meet Faculty' },
+                              { value: 'Meet HOD', label: 'Meet HOD' },
+                              { value: 'Official Meeting', label: 'Official Meeting' },
+                              { value: 'Seminar / Workshop', label: 'Seminar / Workshop' },
+                              { value: 'Placement Drive', label: 'Placement Drive' },
+                              { value: 'Recruitment Interview', label: 'Recruitment Interview' },
+                              { value: 'Guest Lecture', label: 'Guest Lecture' },
+                              { value: 'Alumni Visit', label: 'Alumni Visit' },
+                              { value: 'Sports Event', label: 'Sports Event' },
+                              { value: 'Cultural Event', label: 'Cultural Event' },
+                              { value: 'Training Program', label: 'Training Program' },
+                              { value: 'others', label: 'Others (Specify Below)' }
+                            ]}
                           />
+                          {requestPurpose === 'others' && (
+                            <div className="mt-2.5">
+                              <Input
+                                label="Custom Purpose of Visit"
+                                placeholder="Specify custom purpose of visit..."
+                                value={customPurpose}
+                                onChange={(e) => setCustomPurpose(e.target.value)}
+                                required
+                              />
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -792,7 +1199,7 @@ export const HomeDashboard = () => {
             </div>
           )}
 
-          {portalTab === 'passes' && (
+          {displayTab === 'passes' && (
             <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Registered Pass Log</h3>
@@ -959,7 +1366,7 @@ export const HomeDashboard = () => {
             </div>
           )}
 
-          {portalTab === 'guide' && (
+          {displayTab === 'guide' && (
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
               <div className="lg:col-span-4 space-y-4">
                 <Input
@@ -1081,7 +1488,7 @@ export const HomeDashboard = () => {
             </div>
           )}
 
-          {portalTab === 'alerts' && (
+          {displayTab === 'alerts' && (
             <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
               <div className="md:col-span-6 space-y-4">
                 <div className="flex items-center justify-between border-b border-slate-100 pb-2">
@@ -1303,6 +1710,290 @@ export const HomeDashboard = () => {
           )}
 
         </div>
+
+        {feedbackDrawerOpen && (
+          <div className="fixed inset-0 z-50">
+            <button
+              type="button"
+              aria-label="Close feedback panel"
+              className="absolute inset-0 bg-slate-900/45 backdrop-blur-[2px]"
+              onClick={() => setPortalTab('home')}
+            />
+
+            <aside className="absolute right-0 top-0 h-full w-full max-w-2xl bg-slate-50 border-l border-slate-200 shadow-2xl flex flex-col">
+              <div className="px-5 py-4 border-b border-slate-200 bg-white flex items-start justify-between gap-4">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Badge variant="info" size="sm">Post-Visit Feedback</Badge>
+                    {isDemoMode && <Badge variant="warning" size="sm">Demo Mode</Badge>}
+                  </div>
+                  <h3 className="text-lg font-extrabold text-slate-900">Visitor Feedback</h3>
+                  <p className="text-xs text-slate-500 max-w-xl">
+                    Share how the full visit felt after your campus trip.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  {isDemoMode && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      icon={Star}
+                      onClick={handleSimulateCompletedVisit}
+                      className="border-amber-300 text-amber-700 hover:bg-amber-50"
+                    >
+                      Simulate completed visit
+                    </Button>
+                  )}
+                  {isDemoMode && existingFeedbackSubmission && selectedFeedbackVisit?.id && selectedFeedbackVisit.id.startsWith('VPASS-DEMO-') && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      icon={Trash2}
+                      onClick={handleResetDemoFeedback}
+                      className="border-rose-300 text-rose-700 hover:bg-rose-50"
+                    >
+                      Reset demo feedback
+                    </Button>
+                  )}
+                  <Button variant="ghost" size="sm" icon={X} onClick={() => setPortalTab('home')} className="!px-2 !h-9">
+                    Close
+                  </Button>
+                </div>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-5 space-y-4">
+                {!completedVisits.length ? (
+                  <Card className="border-dashed border-slate-300 bg-white">
+                    <CardContent className="p-8 text-center space-y-3">
+                      <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mx-auto">
+                        <Star className="w-6 h-6" />
+                      </div>
+                      <h4 className="text-sm font-extrabold text-slate-900">Feedback opens up after your visit</h4>
+                      <p className="text-xs text-slate-500 max-w-md mx-auto">
+                        Once you have a completed or checked-in visit, the most recent one will appear here for review.
+                      </p>
+                      {isDemoMode && (
+                        <div className="pt-2">
+                          <Button variant="primary" size="sm" icon={Star} onClick={handleSimulateCompletedVisit}>
+                            Simulate completed visit
+                          </Button>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                ) : existingFeedbackSubmission ? (
+                  <Card className="bg-emerald-50/60 border-emerald-200">
+                    <CardContent className="p-5 space-y-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-700">Feedback submitted</p>
+                          <h4 className="text-sm font-extrabold text-emerald-950 mt-1">{formatFeedbackVisitLabel(selectedFeedbackVisit)}</h4>
+                          <p className="text-xs text-emerald-800 mt-1">Read-only confirmation for the submitted visit.</p>
+                        </div>
+                        <Badge variant="success" size="sm">Locked</Badge>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="rounded-xl border border-emerald-200 bg-white p-3">
+                          <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold block">Overall rating</span>
+                          <div className="mt-2">{renderStarRating(existingFeedbackSubmission.overallRating, () => {}, 'w-4 h-4')}</div>
+                        </div>
+                        {FEEDBACK_ASPECT_OPTIONS.map((aspect) => (
+                          <div key={aspect.key} className="rounded-xl border border-emerald-200 bg-white p-3">
+                            <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold block">{aspect.label}</span>
+                            <div className="mt-2">{renderStarRating(existingFeedbackSubmission.aspectRatings?.[aspect.key] || 0, () => {}, 'w-3.5 h-3.5')}</div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {existingFeedbackSubmission.comment && (
+                        <div className="rounded-xl border border-emerald-200 bg-white p-4">
+                          <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold block">Comment</span>
+                          <p className="text-sm text-slate-700 mt-2 leading-relaxed">{existingFeedbackSubmission.comment}</p>
+                        </div>
+                      )}
+
+                      <div className="flex items-center justify-between gap-3 rounded-xl border border-emerald-200 bg-white p-4 text-xs text-slate-600">
+                        <span>{existingFeedbackSubmission.media?.photos?.length || 0} photo(s)</span>
+                        <span>{existingFeedbackSubmission.media?.video ? '1 video attached' : 'No video attached'}</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <form onSubmit={handleFeedbackSubmit} className="space-y-4">
+                    {completedVisits.length > 1 && (
+                      <Select
+                        label="Which completed visit is this about?"
+                        value={selectedFeedbackVisit?.id || ''}
+                        onChange={(e) => setFeedbackSelectedVisitId(e.target.value)}
+                        options={completedVisits.map((visit) => ({
+                          value: visit.id,
+                          label: `${visit.date} • ${visit.host}`,
+                        }))}
+                      />
+                    )}
+
+                    <Card>
+                      <CardContent className="p-5 space-y-4">
+                        <div className="flex items-start justify-between gap-4">
+                          <div>
+                            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Reviewing</p>
+                            <h4 className="text-sm font-extrabold text-slate-900 mt-1">{formatFeedbackVisitLabel(selectedFeedbackVisit)}</h4>
+                            <p className="text-xs text-slate-500 mt-1">Feedback is tied to the selected visit and your visitor account.</p>
+                          </div>
+                          <Badge variant="info" size="sm">Visitor ID: {visitorProfile.idNumber}</Badge>
+                        </div>
+
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between gap-3">
+                            <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider">Overall rating</label>
+                            <span className="text-[11px] text-slate-500">Required</span>
+                          </div>
+                          {renderStarRating(feedbackOverallRating, setFeedbackOverallRating)}
+                          {feedbackSubmitError && !feedbackOverallRating && (
+                            <p className="text-xs text-red-600">{feedbackSubmitError}</p>
+                          )}
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {FEEDBACK_ASPECT_OPTIONS.slice(0, 2).map((aspect) => (
+                            <div key={aspect.key} className="rounded-xl border border-slate-200 bg-slate-50 p-3 space-y-2">
+                              <div className="flex items-center justify-between gap-2">
+                                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{aspect.label}</label>
+                                <span className="text-[10px] text-slate-400">Optional</span>
+                              </div>
+                              {renderStarRating(feedbackAspectRatings[aspect.key], (value) => setAspectRating(aspect.key, value), 'w-4 h-4')}
+                            </div>
+                          ))}
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Comment</label>
+                          <textarea
+                            rows={4}
+                            className="w-full p-3 text-sm bg-white border border-slate-300 rounded-xl text-slate-900 focus:ring-2 focus:ring-blue-600 focus:outline-none"
+                            placeholder="Tell us what worked well or what could improve..."
+                            value={feedbackComment}
+                            onChange={(e) => setFeedbackComment(e.target.value)}
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <label className="rounded-xl border border-dashed border-slate-300 bg-white p-4 cursor-pointer hover:border-blue-300 hover:bg-blue-50/30 transition-colors">
+                            <input
+                              type="file"
+                              className="hidden"
+                              accept="image/jpeg,image/png,image/heic,image/heif"
+                              multiple
+                              onChange={(e) => appendFeedbackDrafts(Array.from(e.target.files || []), 'photo')}
+                            />
+                            <div className="flex items-start gap-3">
+                              <div className="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                                <UploadCloud className="w-5 h-5" />
+                              </div>
+                              <div className="space-y-1">
+                                <p className="text-sm font-bold text-slate-900">Add photos</p>
+                                <p className="text-xs text-slate-500">JPG, PNG, HEIC up to 8 MB each</p>
+                              </div>
+                            </div>
+                          </label>
+
+                          <label className="rounded-xl border border-dashed border-slate-300 bg-white p-4 cursor-pointer hover:border-blue-300 hover:bg-blue-50/30 transition-colors">
+                            <input
+                              type="file"
+                              className="hidden"
+                              accept="video/mp4,video/quicktime"
+                              onChange={(e) => appendFeedbackDrafts(Array.from(e.target.files || []), 'video')}
+                            />
+                            <div className="flex items-start gap-3">
+                              <div className="w-10 h-10 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                                <UploadCloud className="w-5 h-5" />
+                              </div>
+                              <div className="space-y-1">
+                                <p className="text-sm font-bold text-slate-900">Add video</p>
+                                <p className="text-xs text-slate-500">Single MP4 or MOV up to 80 MB</p>
+                              </div>
+                            </div>
+                          </label>
+                        </div>
+
+                        {(feedbackPhotoDrafts.length > 0 || feedbackVideoDraft) && (
+                          <div className="space-y-3">
+                            {feedbackUploadState.active && (
+                              <div className="rounded-xl border border-slate-200 bg-white p-3 space-y-2">
+                                <div className="flex items-center justify-between text-xs text-slate-600">
+                                  <span>{feedbackUploadState.label || 'Uploading selected media'}</span>
+                                  <span>{feedbackUploadState.progress}%</span>
+                                </div>
+                                <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
+                                  <div className="h-full bg-blue-600 transition-all" style={{ width: `${feedbackUploadState.progress}%` }} />
+                                </div>
+                              </div>
+                            )}
+
+                            <div className="space-y-2">
+                              {feedbackPhotoDrafts.map((draft) => (
+                                <div key={draft.id} className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-3">
+                                  <div className="flex items-center gap-3 min-w-0">
+                                    <div className="w-12 h-12 rounded-lg bg-slate-100 overflow-hidden shrink-0">
+                                      <img src={draft.previewUrl} alt={draft.name} className="w-full h-full object-cover" />
+                                    </div>
+                                    <div className="min-w-0">
+                                      <p className="text-sm font-semibold text-slate-900 truncate">{draft.name}</p>
+                                      <p className="text-[11px] text-slate-500">{Math.round(draft.size / 1024)} KB • {draft.status === 'ready' ? 'Ready' : `Uploading ${draft.progress}%`}</p>
+                                    </div>
+                                  </div>
+                                  <button type="button" onClick={() => removeFeedbackPhoto(draft.id)} className="text-slate-400 hover:text-red-600">
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              ))}
+
+                              {feedbackVideoDraft && (
+                                <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-3">
+                                  <div className="flex items-center gap-3 min-w-0">
+                                    <div className="w-12 h-12 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                                      <UploadCloud className="w-5 h-5" />
+                                    </div>
+                                    <div className="min-w-0">
+                                      <p className="text-sm font-semibold text-slate-900 truncate">{feedbackVideoDraft.name}</p>
+                                      <p className="text-[11px] text-slate-500">{Math.round(feedbackVideoDraft.size / 1024 / 1024 * 10) / 10} MB • {feedbackVideoDraft.status === 'ready' ? 'Ready' : `Uploading ${feedbackVideoDraft.progress}%`}</p>
+                                    </div>
+                                  </div>
+                                  <button type="button" onClick={removeFeedbackVideo} className="text-slate-400 hover:text-red-600">
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+
+                    {feedbackSubmitError && (
+                      <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-800">
+                        {feedbackSubmitError}
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between gap-3 pb-4">
+                      <span className="text-[11px] text-slate-500">Your feedback is stored locally in this browser for the demo.</span>
+                      <div className="flex items-center gap-2">
+                        <Button variant="outline" size="sm" onClick={() => setPortalTab('home')}>
+                          Cancel
+                        </Button>
+                        <Button type="submit" variant="primary" size="sm" isLoading={feedbackSubmitStatus === 'submitting'} disabled={feedbackUploadState.active}>
+                          Submit Feedback
+                        </Button>
+                      </div>
+                    </div>
+                  </form>
+                )}
+              </div>
+            </aside>
+          </div>
+        )}
 
         {selectedPassForQR && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">

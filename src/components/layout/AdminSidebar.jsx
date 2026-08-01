@@ -24,7 +24,8 @@ import {
   User,
   LogOut,
   X,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Star
 } from 'lucide-react';
 import { useRole } from '../../context/RoleContext';
 
@@ -70,6 +71,7 @@ export const AdminSidebar = ({ isOpen, onClose }) => {
         { name: 'Events Management', path: '/admin/events', icon: CalendarDays },
         { name: 'Notices Management', path: '/admin/notices', icon: FileText },
         { name: 'Visitor Management', path: '/admin/visitors', icon: Users, badge: '12' },
+        { name: 'Visitor Feedback', path: '/admin/feedback', icon: Star },
         { name: 'System Notifications', path: '/admin/notifications', icon: Bell },
         { name: 'Complaints Monitoring', path: '/admin/complaints', icon: MessageSquare, badge: '8' }
       ]

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Users,
@@ -18,7 +18,10 @@ import {
   PlusCircle,
   ArrowRight,
   TrendingUp,
-  AlertTriangle
+  AlertTriangle,
+  Star,
+  Image,
+  Video
 } from 'lucide-react';
 import { AdminLayout } from '../../components/layout/AdminLayout';
 import { PageHeader } from '../../components/layout/PageHeader';
@@ -26,10 +29,41 @@ import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/Ca
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { useAdmin } from '../../context/AdminContext';
+import { FEEDBACK_ASPECT_OPTIONS, getAllFeedbackSubmissions } from '../../services/feedbackService';
+
+const renderMiniStars = (value) => (
+  <div className="flex items-center gap-0.5">
+    {[1, 2, 3, 4, 5].map((score) => (
+      <Star
+        key={score}
+        className={`w-3.5 h-3.5 ${score <= value ? 'text-amber-400 fill-amber-400' : 'text-slate-300'}`}
+      />
+    ))}
+  </div>
+);
 
 export const AdminDashboardPage = () => {
   const navigate = useNavigate();
   const { metrics, auditLogs, complaints, visitors } = useAdmin();
+  const [feedbackSubmissions, setFeedbackSubmissions] = useState(() => getAllFeedbackSubmissions());
+
+  useEffect(() => {
+    const syncFeedback = () => setFeedbackSubmissions(getAllFeedbackSubmissions());
+    window.addEventListener('storage', syncFeedback);
+    return () => window.removeEventListener('storage', syncFeedback);
+  }, []);
+
+  const feedbackSummary = useMemo(() => {
+    const total = feedbackSubmissions.length;
+    const averageOverall = total
+      ? (feedbackSubmissions.reduce((sum, item) => sum + (item.overallRating || 0), 0) / total).toFixed(1)
+      : '0.0';
+    const averageNavigation = total
+      ? (feedbackSubmissions.reduce((sum, item) => sum + (item.aspectRatings?.navigationEase || 0), 0) / total).toFixed(1)
+      : '0.0';
+
+    return { total, averageOverall, averageNavigation };
+  }, [feedbackSubmissions]);
 
   const summaryCards = [
     { label: 'TOTAL STUDENTS', val: '4,250', sub: 'Enrolled across 6 Depts', icon: Users, color: 'border-l-blue-600 text-blue-600 bg-blue-50/50' },
@@ -42,6 +76,7 @@ export const AdminDashboardPage = () => {
     { label: 'PENDING VISITORS', val: `${metrics.pendingVisitors}`, sub: 'Awaiting Gate Approval', icon: Users, color: 'border-l-orange-500 text-orange-600 bg-orange-50/50' },
     { label: 'PENDING SUBSTITUTIONS', val: '4', sub: 'Action Needed', icon: UserPlus, color: 'border-l-red-500 text-red-600 bg-red-50/50' },
     { label: 'ACTIVE COMPLAINTS', val: `${metrics.activeComplaints}`, sub: 'Facility Issues Under Review', icon: MessageSquare, color: 'border-l-rose-600 text-rose-600 bg-rose-50/50' },
+    { label: 'FEEDBACK SUBMISSIONS', val: `${feedbackSummary.total}`, sub: 'Visitor post-visit reviews', icon: Star, color: 'border-l-amber-500 text-amber-600 bg-amber-50/50' },
     { label: 'CAMPUS OCCUPANCY', val: '72%', sub: 'Real-Time Crowd Index', icon: Activity, color: 'border-l-emerald-500 text-emerald-600 bg-emerald-50/50' }
   ];
 
@@ -174,6 +209,85 @@ export const AdminDashboardPage = () => {
                     <Badge variant="neutral" size="sm" className="shrink-0">{log.module}</Badge>
                   </div>
                 ))}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Visitor Feedback Preview */}
+          <div className="lg:col-span-12">
+            <Card>
+              <CardHeader actions={<Button variant="ghost" size="sm" onClick={() => navigate('/admin/analytics')}>Open Analytics →</Button>}>
+                <CardTitle className="flex items-center gap-2">
+                  <MessageSquare className="w-4 h-4 text-amber-600" />
+                  Visitor Feedback Stream
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-5 space-y-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase block">Total reviews</span>
+                    <h4 className="text-xl font-black text-slate-900 mt-1">{feedbackSummary.total}</h4>
+                  </div>
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase block">Average overall</span>
+                    <h4 className="text-xl font-black text-slate-900 mt-1">{feedbackSummary.averageOverall}</h4>
+                  </div>
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase block">Navigation ease</span>
+                    <h4 className="text-xl font-black text-slate-900 mt-1">{feedbackSummary.averageNavigation}</h4>
+                  </div>
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase block">Latest media</span>
+                    <h4 className="text-xl font-black text-slate-900 mt-1">{feedbackSubmissions[0]?.media?.photos?.length ? 'Photos' : feedbackSubmissions[0]?.media?.video ? 'Video' : 'None'}</h4>
+                  </div>
+                </div>
+
+                {feedbackSubmissions.length > 0 ? (
+                  <div className="space-y-3">
+                    {feedbackSubmissions.slice(0, 3).map((submission) => (
+                      <div key={submission.id} className="rounded-xl border border-slate-200 bg-white p-4 space-y-3">
+                        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
+                          <div>
+                            <h4 className="text-sm font-extrabold text-slate-900">{submission.visitSnapshot?.host || 'Visitor feedback'}</h4>
+                            <p className="text-xs text-slate-500 mt-0.5">{submission.visitSnapshot?.date} • {submission.visitorName}</p>
+                          </div>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <Badge variant="info" size="sm">Visit {submission.visitId}</Badge>
+                            <Badge variant="success" size="sm">{submission.overallRating}/5</Badge>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between gap-3 text-xs text-slate-600 flex-wrap">
+                          <div className="flex items-center gap-2">
+                            {renderMiniStars(submission.overallRating)}
+                            <span className="font-semibold text-slate-700">Overall</span>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="inline-flex items-center gap-1"><Image className="w-3.5 h-3.5" /> {submission.media?.photos?.length || 0}</span>
+                            <span className="inline-flex items-center gap-1"><Video className="w-3.5 h-3.5" /> {submission.media?.video ? 1 : 0}</span>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                          {FEEDBACK_ASPECT_OPTIONS.map((aspect) => (
+                            <div key={aspect.key} className="rounded-lg border border-slate-200 bg-slate-50 p-2.5">
+                              <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold block">{aspect.label}</span>
+                              <div className="mt-1">{renderMiniStars(submission.aspectRatings?.[aspect.key] || 0)}</div>
+                            </div>
+                          ))}
+                        </div>
+
+                        {submission.comment && (
+                          <p className="text-xs text-slate-600 leading-relaxed border-t border-slate-100 pt-3">{submission.comment}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center p-8 bg-slate-50 border border-slate-100 text-xs text-slate-450 rounded-xl">
+                    No visitor feedback has been submitted yet.
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>

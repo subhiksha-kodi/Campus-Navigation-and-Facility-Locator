@@ -215,3 +215,54 @@ export const formatFeedbackVisitLabel = (visit) => {
   if (!visit) return 'Unknown visit';
   return `${visit.date} • ${visit.host}`;
 };
+
+const deleteMediaAssetsForSubmission = async (submissionId) => {
+  const db = await openMediaDatabase();
+  return new Promise((resolve, reject) => {
+    try {
+      const tx = db.transaction(FEEDBACK_MEDIA_STORE_NAME, 'readwrite');
+      const store = tx.objectStore(FEEDBACK_MEDIA_STORE_NAME);
+      const request = store.openCursor();
+      request.onerror = () => reject(request.error || new Error('Unable to iterate media assets.'));
+      request.onsuccess = () => {
+        const cursor = request.result;
+        if (cursor) {
+          if (cursor.value && cursor.value.submissionId === submissionId) {
+            cursor.delete();
+          }
+          cursor.continue();
+        } else {
+          resolve();
+        }
+      };
+    } catch (err) {
+      reject(err);
+    }
+  });
+};
+
+export const deleteFeedbackSubmission = async (submissionId) => {
+  if (!submissionId) return false;
+  const submissions = getAllFeedbackSubmissions();
+  const found = submissions.find((s) => s.id === submissionId);
+  if (!found) return false;
+
+  const remaining = submissions.filter((s) => s.id !== submissionId);
+  writeJson(FEEDBACK_SUBMISSIONS_KEY, remaining);
+
+  try {
+    await deleteMediaAssetsForSubmission(submissionId);
+  } catch (err) {
+    // ignore media delete failures but still return success for submission removal
+    console.warn('Failed to remove media assets for feedback submission', err);
+  }
+
+  return true;
+};
+
+export const deleteFeedbackSubmissionForVisit = async (visitorId, visitId) => {
+  const submissions = getAllFeedbackSubmissions();
+  const found = submissions.find((s) => s.visitorId === visitorId && s.visitId === visitId);
+  if (!found) return false;
+  return deleteFeedbackSubmission(found.id);
+};
