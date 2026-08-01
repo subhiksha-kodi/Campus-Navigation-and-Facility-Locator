@@ -1,40 +1,43 @@
 // Admin Portal Central Data Services & Mock Database APIs
 
 export const INITIAL_ADMIN_USERS = [
-  { id: 'usr_adm_1', name: 'Eleanor Vance', email: 'admin.vance@campus.edu', phone: '+1 (555) 019-2831', role: 'admin', department: 'Facility & IT Ops', status: 'Active', created_at: '2025-01-10' },
-  { id: 'usr_fac_1', name: 'Dr. Gayathri Devi', email: 'gayathri.devi@campus.edu', phone: '+1 (555) 234-5678', role: 'faculty', department: 'Computer Science & Eng', status: 'Active', created_at: '2025-02-15' },
-  { id: 'usr_fac_2', name: 'Prof. Kiruthika', email: 'kiruthika@campus.edu', phone: '+1 (555) 345-6789', role: 'faculty', department: 'Computer Science & Eng', status: 'Active', created_at: '2025-03-01' },
-  { id: 'usr_fac_3', name: 'Dr. Manjula', email: 'manjula@campus.edu', phone: '+1 (555) 456-7890', role: 'faculty', department: 'Computer Science & Eng', status: 'Active', created_at: '2025-03-12' },
-  { id: 'usr_fac_4', name: 'Prof. Kalaiyarasi', email: 'kalaiyarasi@campus.edu', phone: '+1 (555) 567-8901', role: 'faculty', department: 'Information Technology', status: 'Active', created_at: '2025-03-20' },
-  { id: 'usr_fac_5', name: 'Dr. Revathi', email: 'revathi@campus.edu', phone: '+1 (555) 678-9012', role: 'faculty', department: 'Software Engineering', status: 'Active', created_at: '2025-04-05' },
-  { id: 'usr_std_1', name: 'Alex Vance', email: 'alex.vance@campus.edu', phone: '+1 (555) 889-0123', role: 'student', department: 'Computer Science & Eng', status: 'Active', created_at: '2025-08-01' },
-  { id: 'usr_std_2', name: 'Samantha Reed', email: 's.reed@campus.edu', phone: '+1 (555) 990-1234', role: 'student', department: 'Information Technology', status: 'Active', created_at: '2025-08-01' },
-  { id: 'usr_vis_1', name: 'Sarah Jenkins', email: 'sarah.j@gmail.com', phone: '+1 (555) 019-2831', role: 'visitor', department: 'Guest / Parent', status: 'Active', created_at: '2026-07-31' },
-  { id: 'usr_sec_1', name: 'Officer Marcus Drake', email: 'security.drake@campus.edu', phone: '+1 (555) 402-9988', role: 'security', department: 'Safety & Dispatch', status: 'Active', created_at: '2025-01-01' }
+  { id: 'usr_adm_1', name: 'Dean', email: 'dean@campus.edu', phone: '+91 98400 11223', role: 'admin', department: 'Office of the Dean', status: 'Active', created_at: '2025-01-10' },
+  { id: 'usr_fac_1', name: 'Dr. Hariharan', email: 'hariharan@campus.edu', phone: '+91 98450 23456', role: 'faculty', department: 'Computer Science & Eng', status: 'Active', created_at: '2025-02-15' },
+  { id: 'usr_fac_2', name: 'Dr. Rishitha', email: 'rishitha@campus.edu', phone: '+91 98450 34567', role: 'faculty', department: 'Computer Science & Eng', status: 'Active', created_at: '2025-03-01' },
+  { id: 'usr_fac_3', name: 'Prof. Akalya', email: 'akalya@campus.edu', phone: '+91 98450 45678', role: 'faculty', department: 'Computer Science & Eng', status: 'Active', created_at: '2025-03-12' },
+  { id: 'usr_fac_4', name: 'Dr. Jeswin', email: 'jeswin@campus.edu', phone: '+91 98450 56789', role: 'faculty', department: 'Information Technology', status: 'Active', created_at: '2025-03-20' },
+  { id: 'usr_fac_5', name: 'Prof. Sai Prasath', email: 'saiprasath@campus.edu', phone: '+91 98450 67890', role: 'faculty', department: 'Software Engineering', status: 'Active', created_at: '2025-04-05' },
+  { id: 'usr_std_1', name: 'Hariharan S', email: 'hariharan.std@campus.edu', phone: '+91 99001 88901', role: 'student', department: 'Computer Science & Eng', status: 'Active', created_at: '2025-08-01' },
+  { id: 'usr_std_2', name: 'Rishitha M', email: 'rishitha.std@campus.edu', phone: '+91 99001 99012', role: 'student', department: 'Information Technology', status: 'Active', created_at: '2025-08-01' },
+  { id: 'usr_vis_1', name: 'Sanjana P (Parent)', email: 'sanjana.parent@gmail.com', phone: '+91 99001 01928', role: 'visitor', department: 'Guest / Parent', status: 'Active', created_at: '2026-07-31' }
 ];
 
 export const INITIAL_DEPARTMENTS = [
-  { id: 'DEPT-CSE', name: 'Computer Science & Engineering', code: 'CSE', hod: 'Dr. Manjula', building: 'Sunflower Block', status: 'Active' },
-  { id: 'DEPT-ECE', name: 'Electronics & Communication Eng', code: 'ECE', hod: 'Dr. K. Ramanathan', building: 'AS Block', status: 'Active' },
-  { id: 'DEPT-EEE', name: 'Electrical & Electronics Eng', code: 'EEE', hod: 'Prof. S. Nambiar', building: 'AS Block', status: 'Active' },
-  { id: 'DEPT-MECH', name: 'Mechanical Engineering', code: 'MECH', hod: 'Dr. V. Sundaram', building: 'Mechanical Block', status: 'Active' },
-  { id: 'DEPT-CIVIL', name: 'Civil Engineering', code: 'CIVIL', hod: 'Prof. M. Arumugam', building: 'IB Block', status: 'Active' },
-  { id: 'DEPT-AIDS', name: 'Artificial Intelligence & Data Science', code: 'AI & DS', hod: 'Dr. Gayathri Devi', building: 'Sunflower Block', status: 'Active' }
+  { id: 'DEPT-CSE', name: 'Computer Science & Engineering', code: 'CSE', hod: 'Prof. Akalya', building: 'Sunflower Block', status: 'Active' },
+  { id: 'DEPT-ECE', name: 'Electronics & Communication Eng', code: 'ECE', hod: 'Dr. Rohit', building: 'AS Block', status: 'Active' },
+  { id: 'DEPT-EEE', name: 'Electrical & Electronics Eng', code: 'EEE', hod: 'Dr. Arjun', building: 'AS Block', status: 'Active' },
+  { id: 'DEPT-MECH', name: 'Mechanical Engineering', code: 'MECH', hod: 'Prof. Kishore', building: 'Mechanical Block', status: 'Active' },
+  { id: 'DEPT-CIVIL', name: 'Civil Engineering', code: 'CIVIL', hod: 'Dean', building: 'IB Block', status: 'Active' },
+  { id: 'DEPT-AIDS', name: 'Artificial Intelligence & Data Science', code: 'AI & DS', hod: 'Dr. Sanjana', building: 'Research Park', status: 'Active' }
 ];
 
 export const INITIAL_STUDENTS = [
-  { id: 'CS-2024-089', name: 'Alex Vance', department: 'CSE', year: 'III', section: 'A', email: 'alex.vance@campus.edu', phone: '+1 (555) 889-0123', status: 'Active' },
-  { id: 'IT-2024-042', name: 'Samantha Reed', department: 'IT', year: 'III', section: 'B', email: 's.reed@campus.edu', phone: '+1 (555) 990-1234', status: 'Active' },
-  { id: 'CS-2024-104', name: 'David Miller', department: 'CSE', year: 'III', section: 'A', email: 'd.miller@campus.edu', phone: '+1 (555) 112-2334', status: 'Active' },
-  { id: 'EC-2024-019', name: 'Priya Sharma', department: 'ECE', year: 'II', section: 'A', email: 'p.sharma@campus.edu', phone: '+1 (555) 223-3445', status: 'Active' },
-  { id: 'ME-2024-055', name: 'Rohan Gupta', department: 'MECH', year: 'IV', section: 'A', email: 'r.gupta@campus.edu', phone: '+1 (555) 334-4556', status: 'Active' }
+  { id: 'CS-2024-089', name: 'Hariharan S', department: 'CSE', year: 'III', section: 'A', email: 'hariharan.std@campus.edu', phone: '+91 99001 88901', status: 'Active' },
+  { id: 'IT-2024-042', name: 'Rishitha M', department: 'IT', year: 'III', section: 'B', email: 'rishitha.std@campus.edu', phone: '+91 99001 99012', status: 'Active' },
+  { id: 'CS-2024-104', name: 'Akalya K', department: 'CSE', year: 'III', section: 'A', email: 'akalya.std@campus.edu', phone: '+91 99001 11223', status: 'Active' },
+  { id: 'EC-2024-019', name: 'Jeswin R', department: 'ECE', year: 'II', section: 'A', email: 'jeswin.std@campus.edu', phone: '+91 99001 22334', status: 'Active' },
+  { id: 'ME-2024-055', name: 'Rohit V', department: 'MECH', year: 'IV', section: 'A', email: 'rohit.std@campus.edu', phone: '+91 99001 33445', status: 'Active' },
+  { id: 'AD-2024-108', name: 'Sanjana P', department: 'AI & DS', year: 'II', section: 'B', email: 'sanjana.std@campus.edu', phone: '+91 99001 44556', status: 'Active' },
+  { id: 'CS-2024-112', name: 'Akilesh N', department: 'CSE', year: 'III', section: 'B', email: 'akilesh.std@campus.edu', phone: '+91 99001 55667', status: 'Active' },
+  { id: 'EC-2024-045', name: 'Sai Prasath', department: 'ECE', year: 'III', section: 'A', email: 'saiprasath.std@campus.edu', phone: '+91 99001 66778', status: 'Active' }
 ];
 
 export const INITIAL_BUILDINGS = [
-  { id: 'BLD-SUN', name: 'Sunflower Block', code: 'SF', description: 'Computing, Data Science Labs & Smart Classrooms', floors: 4, contact: 'CSE Department (Ext 204)', openTime: '07:30 AM', closeTime: '09:00 PM', lat: 12.9716, lng: 77.5946, status: 'Active' },
-  { id: 'BLD-MCH', name: 'Mechanical Block', code: 'MB', description: 'Robotics, Thermal Engineering & Advanced CAD Labs', floors: 3, contact: 'MECH Department (Ext 301)', openTime: '08:00 AM', closeTime: '08:00 PM', lat: 12.9720, lng: 77.5962, status: 'Active' },
-  { id: 'BLD-ASB', name: 'AS Block', code: 'AS', description: 'Administrative Offices, Seminar Halls & ECE Department', floors: 4, contact: 'Main Admin Office (Ext 100)', openTime: '07:00 AM', closeTime: '10:00 PM', lat: 12.9725, lng: 77.5955, status: 'Active' },
-  { id: 'BLD-IBB', name: 'IB Block', code: 'IB', description: 'International Block, Digital Archives & Auditorium', floors: 3, contact: 'International Cell (Ext 150)', openTime: '08:00 AM', closeTime: '09:30 PM', lat: 12.9718, lng: 77.5950, status: 'Active' }
+  { id: 'BLD-AS', name: 'AS Block', code: 'AS', description: 'Administrative Offices, Seminar Halls & Electronics Labs', floors: 4, contact: 'Dean Office (Ext 100)', openTime: '07:00 AM', closeTime: '10:00 PM', lat: 12.9725, lng: 77.5955, status: 'Active' },
+  { id: 'BLD-IB', name: 'IB Block', code: 'IB', description: 'International Block, Digital Archives & Main Auditorium', floors: 4, contact: 'International Cell (Ext 150)', openTime: '08:00 AM', closeTime: '09:30 PM', lat: 12.9718, lng: 77.5950, status: 'Active' },
+  { id: 'BLD-SF', name: 'Sunflower Block', code: 'SF', description: 'Computing, Data Science Labs & Smart Classrooms', floors: 4, contact: 'CSE Department (Ext 204)', openTime: '07:30 AM', closeTime: '09:00 PM', lat: 12.9716, lng: 77.5946, status: 'Active' },
+  { id: 'BLD-MB', name: 'Mechanical Block', code: 'MB', description: 'Robotics, Thermal Engineering & Advanced CAD Labs', floors: 3, contact: 'MECH Department (Ext 301)', openTime: '08:00 AM', closeTime: '08:00 PM', lat: 12.9720, lng: 77.5962, status: 'Active' },
+  { id: 'BLD-RP', name: 'Research Park', code: 'RP', description: 'Advanced AI Research Center, Incubation & Innovation Hub', floors: 5, contact: 'Research Cell (Ext 500)', openTime: '07:00 AM', closeTime: '11:00 PM', lat: 12.9730, lng: 77.5970, status: 'Active' }
 ];
 
 export const INITIAL_ROOMS = [
@@ -63,15 +66,15 @@ export const INITIAL_CLASSES = [
 ];
 
 export const INITIAL_FACULTY_ALLOCATIONS = [
-  { id: 'ALLOC-101', classId: 'CLS-CSE-3A', className: 'CSE III-A', subjectCode: 'CS301', subjectName: 'DBMS', facultyId: 'FAC-9402', facultyName: 'Dr. Gayathri Devi' },
-  { id: 'ALLOC-102', classId: 'CLS-CSE-3B', className: 'CSE III-B', subjectCode: 'CS304', subjectName: 'Operating Systems', facultyId: 'FAC-8120', facultyName: 'Prof. Kiruthika' },
-  { id: 'ALLOC-103', classId: 'CLS-CSE-4A', className: 'CSE IV-A', subjectCode: 'CS401', subjectName: 'System Architecture', facultyId: 'FAC-7491', facultyName: 'Dr. Manjula' }
+  { id: 'ALLOC-101', classId: 'CLS-CSE-3A', className: 'CSE III-A', subjectCode: 'CS301', subjectName: 'DBMS', facultyId: 'FAC-9402', facultyName: 'Dr. Hariharan' },
+  { id: 'ALLOC-102', classId: 'CLS-CSE-3B', className: 'CSE III-B', subjectCode: 'CS304', subjectName: 'Operating Systems', facultyId: 'FAC-8120', facultyName: 'Dr. Rishitha' },
+  { id: 'ALLOC-103', classId: 'CLS-CSE-4A', className: 'CSE IV-A', subjectCode: 'CS401', subjectName: 'System Architecture', facultyId: 'FAC-7491', facultyName: 'Prof. Akalya' }
 ];
 
 export const INITIAL_CLASSROOM_ALLOCATIONS = [
-  { id: 'CALLOC-1', className: 'CSE III-A', subject: 'DBMS (CS301)', faculty: 'Dr. Gayathri Devi', day: 'Monday', startTime: '09:00 AM', endTime: '10:00 AM', building: 'Sunflower Block', floor: 3, room: 'SF303' },
-  { id: 'CALLOC-2', className: 'CSE III-B', subject: 'Operating Systems (CS304)', faculty: 'Prof. Kiruthika', day: 'Monday', startTime: '10:00 AM', endTime: '11:00 AM', building: 'Mechanical Block', floor: 2, room: 'MB204' },
-  { id: 'CALLOC-3', className: 'CSE III-A', subject: 'DBMS Lab (CS303L)', faculty: 'Dr. Gayathri Devi', day: 'Monday', startTime: '02:00 PM', endTime: '04:00 PM', building: 'AS Block', floor: 3, room: 'AS303 (AI Lab)' }
+  { id: 'CALLOC-1', className: 'CSE III-A', subject: 'DBMS (CS301)', faculty: 'Dr. Hariharan', day: 'Monday', startTime: '09:00 AM', endTime: '10:00 AM', building: 'Sunflower Block', floor: 3, room: 'SF303' },
+  { id: 'CALLOC-2', className: 'CSE III-B', subject: 'Operating Systems (CS304)', faculty: 'Dr. Rishitha', day: 'Monday', startTime: '10:00 AM', endTime: '11:00 AM', building: 'Mechanical Block', floor: 2, room: 'MB204' },
+  { id: 'CALLOC-3', className: 'CSE III-A', subject: 'DBMS Lab (CS303L)', faculty: 'Dr. Hariharan', day: 'Monday', startTime: '02:00 PM', endTime: '04:00 PM', building: 'AS Block', floor: 3, room: 'AS303 (AI Lab)' }
 ];
 
 export const INITIAL_EVENTS = [

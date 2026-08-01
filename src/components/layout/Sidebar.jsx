@@ -74,23 +74,23 @@ export const Sidebar = ({ isOpen, onClose }) => {
     {
       title: 'Overview',
       items: [
-        { name: 'Dashboard', path: '/home', icon: LayoutDashboard, roles: ['student', 'faculty', 'visitor', 'security', 'admin'] }
+        { name: 'Dashboard', path: activeRole === 'admin' ? '/admin' : '/home', icon: LayoutDashboard, roles: ['student', 'faculty', 'visitor', 'admin'] }
       ]
     },
     {
       title: 'Navigate',
       items: [
-        { name: 'Campus Map', path: '/map', icon: Map, roles: ['student', 'faculty', 'visitor', 'security', 'admin'] },
-        { name: 'Classroom Finder', path: '/classrooms', icon: Search, roles: ['student', 'faculty', 'security', 'admin'] },
-        { name: 'Facility Locator', path: '/facilities', icon: Building2, roles: ['student', 'faculty', 'visitor', 'security', 'admin'] },
-        { name: 'Voice Navigation', path: '/voice-navigation', icon: Mic, roles: ['student', 'faculty', 'visitor', 'security', 'admin'] },
+        { name: 'Campus Map', path: '/map', icon: Map, roles: ['student', 'faculty', 'visitor', 'admin'] },
+        { name: 'Classroom Finder', path: '/classrooms', icon: Search, roles: ['student', 'faculty', 'admin'] },
+        { name: 'Facility Locator', path: '/facilities', icon: Building2, roles: ['student', 'faculty', 'visitor', 'admin'] },
+        { name: 'Voice Navigation', path: '/voice-navigation', icon: Mic, roles: ['student', 'faculty', 'visitor', 'admin'] },
       ]
     },
     {
       title: 'Campus Life',
       items: [
         { name: 'Timetable', path: '/timetable', icon: Calendar, roles: ['student', 'faculty'] },
-        { name: 'Notices & Updates', path: '/notices', icon: Bell, roles: ['student', 'faculty', 'visitor', 'security', 'admin'] },
+        { name: 'Notices & Updates', path: '/notices', icon: Bell, roles: ['student', 'faculty', 'visitor', 'admin'] },
       ]
     },
     {
@@ -105,14 +105,14 @@ export const Sidebar = ({ isOpen, onClose }) => {
     {
       title: 'Safety',
       items: [
-        { name: 'Emergency / SOS', path: '/emergency', icon: ShieldAlert, badge: '24/7', roles: ['student', 'faculty', 'security', 'admin'] },
+        { name: 'Emergency / SOS', path: '/emergency', icon: ShieldAlert, badge: '24/7', roles: ['student', 'faculty', 'admin'] },
       ]
     },
     {
       title: 'Account',
       items: [
-        { name: 'My Profile', path: '/profile', icon: User, roles: ['student', 'faculty', 'visitor', 'security', 'admin'] },
-        { name: 'Settings', path: '/settings', icon: Settings, roles: ['student', 'faculty', 'visitor', 'security', 'admin'] },
+        { name: 'My Profile', path: '/profile', icon: User, roles: ['student', 'faculty', 'visitor', 'admin'] },
+        { name: 'Settings', path: '/settings', icon: Settings, roles: ['student', 'faculty', 'visitor', 'admin'] },
       ]
     }
   ];

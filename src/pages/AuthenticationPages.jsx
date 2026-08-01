@@ -26,9 +26,9 @@ export const LoginPage = () => {
   const switchRoleParam = queryParams.get('switchRole');
   const returnUrlParam = queryParams.get('returnUrl');
 
-  const [email, setEmail] = useState('alex.vance@campus.edu');
-  const [password, setPassword] = useState('password123');
-  const [selectedRole, setSelectedRole] = useState('student'); // Visual dropdown only
+  const [email, setEmail] = useState('hariharan.std@campus.edu');
+  const [password, setPassword] = useState('••••••••');
+  const [selectedRole, setSelectedRole] = useState('student');
 
   useEffect(() => {
     if (switchRoleParam && DEMO_CREDENTIALS[switchRoleParam]) {

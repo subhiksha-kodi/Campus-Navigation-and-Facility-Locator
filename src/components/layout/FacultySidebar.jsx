@@ -11,9 +11,11 @@ import {
   Bell,
   CalendarDays,
   User,
+  Building2,
+  Layers,
+  FileText,
   LogOut,
-  X,
-  FileText
+  X
 } from 'lucide-react';
 import { useRole } from '../../context/RoleContext';
 import { INITIAL_FACULTY_PROFILE } from '../../services/facultyData';
@@ -26,6 +28,7 @@ export const FacultySidebar = ({ isOpen, onClose }) => {
   const navItems = [
     { name: 'Dashboard', path: '/faculty/dashboard', icon: LayoutDashboard },
     { name: 'My Timetable', path: '/faculty/timetable', icon: Calendar },
+    { name: 'Venue & Slot Booking', path: '/faculty/venue-booking', icon: Building2 },
     { name: 'Current Class', path: '/faculty/current-class', icon: Clock },
     { name: 'Campus Map', path: '/faculty/map', icon: Map },
     { name: 'Substitution', path: '/faculty/substitution', icon: UserCheck },
