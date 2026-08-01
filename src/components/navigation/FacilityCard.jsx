@@ -38,8 +38,8 @@ export const FacilityCard = ({ facility, onNavigate }) => {
 
         <div className="flex items-center justify-between pt-1">
           <span className="text-xs text-slate-500">{facility.hours}</span>
-          <Button variant="outline" size="sm" icon={Navigation} onClick={() => onNavigate(facility)}>
-            Directions
+          <Button variant="outline" size="sm" icon={MapPin} onClick={() => onNavigate(facility)}>
+            View on Campus Map
           </Button>
         </div>
       </CardContent>

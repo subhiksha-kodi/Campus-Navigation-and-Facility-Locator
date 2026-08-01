@@ -60,8 +60,8 @@ export const BuildingCard = ({ building, onNavigate, onSelect }) => {
           <CheckCircle2 className="w-3.5 h-3.5" />
           <span>{building.status}</span>
         </div>
-        <Button variant="primary" size="sm" icon={Navigation} onClick={() => onNavigate(building)}>
-          Directions
+        <Button variant="primary" size="sm" icon={MapPin} onClick={() => onNavigate(building)}>
+          View on Campus Map
         </Button>
       </CardFooter>
     </Card>
@@ -103,8 +103,8 @@ export const ClassroomCard = ({ room, onNavigate }) => {
             <Accessibility className="w-3.5 h-3.5 text-emerald-600" />
             {room.hasElevator ? 'Elevator Access' : 'Stair Access'}
           </span>
-          <Button variant="outline" size="sm" icon={Navigation} onClick={() => onNavigate(room)}>
-            Get Route
+          <Button variant="outline" size="sm" icon={MapPin} onClick={() => onNavigate(room)}>
+            View on Campus Map
           </Button>
         </div>
       </CardContent>

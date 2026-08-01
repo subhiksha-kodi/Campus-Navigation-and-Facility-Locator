@@ -230,7 +230,7 @@ export const CampusMap = ({
             Status: ${loc.status}
           </div>
           <button id="btn-nav-${loc.id}" style="width: 100%; background: #2563eb; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;">
-            Get Directions Here
+            Navigate to Location
           </button>
         </div>
       `);

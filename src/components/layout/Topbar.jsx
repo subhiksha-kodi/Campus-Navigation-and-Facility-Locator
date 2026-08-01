@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { Menu, Search, Bell, Shield, UserCheck, ChevronDown, Compass, LogOut, Check } from 'lucide-react';
 import { useRole, DEMO_USERS } from '../../context/RoleContext';
 import { Dropdown } from '../ui/Dropdown';
 import { Badge } from '../ui/Badge';
 
 export const Topbar = ({ onMenuClick }) => {
+  const navigate = useNavigate();
   const { activeRole, switchRole, user, allRoles } = useRole();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
 
@@ -73,7 +74,14 @@ export const Topbar = ({ onMenuClick }) => {
               return (
                 <button
                   key={r}
-                  onClick={() => switchRole(r)}
+                  onClick={() => {
+                    switchRole(r);
+                    if (r === 'faculty') {
+                      navigate('/faculty/dashboard');
+                    } else if (window.location.pathname.startsWith('/faculty')) {
+                      navigate('/home');
+                    }
+                  }}
                   className={`w-full text-left px-3 py-2 text-xs flex items-center justify-between hover:bg-slate-50 transition-colors ${
                     isCurrent ? 'font-semibold text-blue-600 bg-blue-50/50' : 'text-slate-700'
                   }`}

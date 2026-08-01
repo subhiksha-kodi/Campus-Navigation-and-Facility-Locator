@@ -15,13 +15,13 @@ export const DEMO_USERS = {
   },
   faculty: {
     id: 'usr_fac_1',
-    name: 'Dr. Robert Chen',
+    name: 'Dr. Gayathri Devi',
     role: 'faculty',
     roleLabel: 'Faculty',
     department: 'Department of Computing',
     idNumber: 'FAC-9402',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&h=120&q=80',
-    email: 'r.chen@campus.edu'
+    avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=120&h=120&q=80',
+    email: 'gayathri.devi@campus.edu'
   },
   visitor: {
     id: 'usr_vis_1',

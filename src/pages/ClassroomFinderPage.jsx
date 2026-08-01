@@ -158,13 +158,13 @@ export const ClassroomFinderPage = () => {
                     <Button
                       variant={isSelected ? 'primary' : 'outline'}
                       size="sm"
-                      icon={Navigation}
+                      icon={MapPin}
                       onClick={(e) => {
                         e.stopPropagation();
                         handleNavigateToRoom(room);
                       }}
                     >
-                      Get Directions
+                      View on Campus Map
                     </Button>
                   </div>
                 </div>
