@@ -19,7 +19,11 @@ import {
   Shield,
   HelpCircle,
   Plus,
-  QrCode
+  QrCode,
+  Coffee,
+  Award,
+  ListOrdered,
+  ClipboardList
 } from 'lucide-react';
 import { useRole } from '../../context/RoleContext';
 import { Badge } from '../ui/Badge';
@@ -70,33 +74,86 @@ export const Sidebar = ({ isOpen, onClose }) => {
         { name: 'Settings', path: '/settings', icon: Settings, roles: ['visitor'] },
       ]
     }
-  ] : [
+  ] : activeRole === 'student' ? [
     {
       title: 'Overview',
       items: [
-        { name: 'Dashboard', path: activeRole === 'admin' ? '/admin' : '/home', icon: LayoutDashboard, roles: ['student', 'faculty', 'visitor', 'admin'] }
+        { name: 'Student Dashboard', path: '/home', icon: LayoutDashboard, roles: ['student'] }
       ]
     },
     {
       title: 'Navigate',
       items: [
-        { name: 'Campus Map', path: '/map', icon: Map, roles: ['student', 'faculty', 'visitor', 'admin'] },
-        { name: 'Classroom Finder', path: '/classrooms', icon: Search, roles: ['student', 'faculty', 'admin'] },
-        { name: 'Facility Locator', path: '/facilities', icon: Building2, roles: ['student', 'faculty', 'visitor', 'admin'] },
-        { name: 'Voice Navigation', path: '/voice-navigation', icon: Mic, roles: ['student', 'faculty', 'visitor', 'admin'] },
+        { name: 'Campus Map', path: '/map', icon: Map, roles: ['student'] },
+        { name: 'Classroom Finder', path: '/classrooms', icon: Search, roles: ['student'] },
+        { name: 'Facility Locator', path: '/facilities', icon: Building2, roles: ['student'] },
+        { name: 'Voice Navigation', path: '/voice-navigation', icon: Mic, roles: ['student'] },
+      ]
+    },
+    {
+      title: 'Academics',
+      items: [
+        { name: 'My Timetable', path: '/student/timetable', icon: Calendar, roles: ['student'] },
+        { name: 'Attendance & CGPA', path: '/student/attendance', icon: Award, roles: ['student'] },
       ]
     },
     {
       title: 'Campus Life',
       items: [
-        { name: 'Timetable', path: '/timetable', icon: Calendar, roles: ['student', 'faculty'] },
-        { name: 'Notices & Updates', path: '/notices', icon: Bell, roles: ['student', 'faculty', 'visitor', 'admin'] },
+        { name: 'Notices & Updates', path: '/student/notices', icon: Bell, roles: ['student'] },
+        { name: 'Campus Events', path: '/student/events', icon: ClipboardList, roles: ['student'] },
+        { name: 'Smart Cafeteria', path: '/student/cafeteria', icon: Coffee, roles: ['student'] },
+      ]
+    },
+    {
+      title: 'Services',
+      items: [
+        { name: 'Report Complaint', path: '/student/complaints', icon: MessageSquare, roles: ['student'] },
+        { name: 'Complaint History', path: '/student/complaints-history', icon: ListOrdered, roles: ['student'] },
+        { name: 'Facility Feedback', path: '/student/feedback', icon: Star, roles: ['student'] },
+      ]
+    },
+    {
+      title: 'Safety',
+      items: [
+        { name: 'Emergency / SOS', path: '/student/emergency', icon: ShieldAlert, badge: '24/7', roles: ['student'] },
+      ]
+    },
+    {
+      title: 'Account',
+      items: [
+        { name: 'My Profile', path: '/profile', icon: User, roles: ['student'] },
+        { name: 'Notifications', path: '/student/notifications', icon: Bell, roles: ['student'] },
+        { name: 'Settings', path: '/settings', icon: Settings, roles: ['student'] },
+      ]
+    }
+  ] : [
+    {
+      title: 'Overview',
+      items: [
+        { name: 'Dashboard', path: activeRole === 'admin' ? '/admin' : '/home', icon: LayoutDashboard, roles: ['faculty', 'visitor', 'admin'] }
+      ]
+    },
+    {
+      title: 'Navigate',
+      items: [
+        { name: 'Campus Map', path: '/map', icon: Map, roles: ['faculty', 'visitor', 'admin'] },
+        { name: 'Classroom Finder', path: '/classrooms', icon: Search, roles: ['faculty', 'admin'] },
+        { name: 'Facility Locator', path: '/facilities', icon: Building2, roles: ['faculty', 'visitor', 'admin'] },
+        { name: 'Voice Navigation', path: '/voice-navigation', icon: Mic, roles: ['faculty', 'visitor', 'admin'] },
+      ]
+    },
+    {
+      title: 'Campus Life',
+      items: [
+        { name: 'Timetable', path: '/timetable', icon: Calendar, roles: ['faculty'] },
+        { name: 'Notices & Updates', path: '/notices', icon: Bell, roles: ['faculty', 'visitor', 'admin'] },
       ]
     },
     {
       title: 'Services & Operations',
       items: [
-        { name: 'Complaints & Issues', path: '/complaints', icon: MessageSquare, roles: ['student', 'faculty', 'security', 'admin'] },
+        { name: 'Complaints & Issues', path: '/complaints', icon: MessageSquare, roles: ['faculty', 'security', 'admin'] },
         { name: 'Visitor Feedback', path: '/admin/feedback', icon: Star, roles: ['admin'] },
         { name: 'Visitor Passes', path: '/visitors', icon: Users, roles: ['visitor', 'security', 'admin'] },
         { name: 'Admin Operations', path: '/admin', icon: Shield, roles: ['admin'] },
@@ -105,14 +162,14 @@ export const Sidebar = ({ isOpen, onClose }) => {
     {
       title: 'Safety',
       items: [
-        { name: 'Emergency / SOS', path: '/emergency', icon: ShieldAlert, badge: '24/7', roles: ['student', 'faculty', 'admin'] },
+        { name: 'Emergency / SOS', path: '/emergency', icon: ShieldAlert, badge: '24/7', roles: ['faculty', 'admin'] },
       ]
     },
     {
       title: 'Account',
       items: [
-        { name: 'My Profile', path: '/profile', icon: User, roles: ['student', 'faculty', 'visitor', 'admin'] },
-        { name: 'Settings', path: '/settings', icon: Settings, roles: ['student', 'faculty', 'visitor', 'admin'] },
+        { name: 'My Profile', path: '/profile', icon: User, roles: ['faculty', 'visitor', 'admin'] },
+        { name: 'Settings', path: '/settings', icon: Settings, roles: ['faculty', 'visitor', 'admin'] },
       ]
     }
   ];
