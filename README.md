@@ -145,6 +145,10 @@ State Management     →   React Context  | LocalStorage   | JSON Data Stores
 <img width="1918" height="942" alt="Screenshot 2026-08-01 093006" src="https://github.com/user-attachments/assets/6d891418-df04-4d3b-94ad-c78cc1f84400" />
 
 
+Vistor Dshboard
+
+<img width="1918" height="972" alt="image" src="https://github.com/user-attachments/assets/9b4a8f41-1c9f-4224-8187-65cb99545aa2" />
+
 ---
 
 ## 🛠️ Tech Stack
