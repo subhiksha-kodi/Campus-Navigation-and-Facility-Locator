@@ -100,7 +100,7 @@ export const AdminFacultyManagementPage = () => {
                       <td className="p-3 font-mono font-bold text-slate-900">{fac.id}</td>
                       <td className="p-3 font-medium text-slate-700">{fac.designation}</td>
                       <td className="p-3 font-semibold text-blue-700">{fac.department}</td>
-                      <td className="p-3 text-slate-600">{fac.office_location}</td>
+                      <td className="p-3 text-slate-600 font-semibold">{fac.office_location || 'Sunflower Block, Room SF-201'}</td>
                       <td className="p-3 text-right">
                         <Badge variant="success" size="sm">Active</Badge>
                       </td>

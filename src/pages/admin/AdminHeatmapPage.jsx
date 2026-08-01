@@ -65,17 +65,17 @@ export const AdminHeatmapPage = () => {
   const getCellColor = (val) => {
     if (colorScheme === 'rocket') {
       // Seaborn 'rocket' palette: Dark navy -> Teal -> Amber -> Vivid Red
-      if (val < 30) return { bg: '#0f172a', text: '#94a3b8', border: '#1e293b', label: 'Low' };
-      if (val < 55) return { bg: '#0d9488', text: '#ffffff', border: '#14b8a6', label: 'Moderate' };
-      if (val < 75) return { bg: '#d97706', text: '#ffffff', border: '#f59e0b', label: 'Busy' };
-      if (val < 90) return { bg: '#ea580c', text: '#ffffff', border: '#fb923c', label: 'High' };
-      return { bg: '#dc2626', text: '#ffffff', border: '#f87171', label: 'PEAK' };
+      if (val < 30) return { bg: '#0f172a', text: '#94a3b8', border: 'rgba(226,232,240,0.62)', label: 'Low' };
+      if (val < 55) return { bg: '#0d9488', text: '#ffffff', border: 'rgba(226,232,240,0.62)', label: 'Moderate' };
+      if (val < 75) return { bg: '#d97706', text: '#ffffff', border: 'rgba(226,232,240,0.62)', label: 'Busy' };
+      if (val < 90) return { bg: '#ea580c', text: '#ffffff', border: 'rgba(226,232,240,0.62)', label: 'High' };
+      return { bg: '#dc2626', text: '#ffffff', border: 'rgba(226,232,240,0.62)', label: 'PEAK' };
     } else {
       // Seaborn 'viridis' palette: Deep Purple -> Blue -> Green -> Bright Yellow
-      if (val < 30) return { bg: '#440154', text: '#e2e8f0', border: '#481567', label: 'Low' };
-      if (val < 55) return { bg: '#31688e', text: '#ffffff', border: '#26828e', label: 'Moderate' };
-      if (val < 75) return { bg: '#35b779', text: '#0f172a', border: '#6ece58', label: 'Busy' };
-      return { bg: '#fde725', text: '#0f172a', border: '#fef035', label: 'PEAK' };
+      if (val < 30) return { bg: '#440154', text: '#e2e8f0', border: 'rgba(226,232,240,0.62)', label: 'Low' };
+      if (val < 55) return { bg: '#31688e', text: '#ffffff', border: 'rgba(226,232,240,0.62)', label: 'Moderate' };
+      if (val < 75) return { bg: '#35b779', text: '#0f172a', border: 'rgba(226,232,240,0.62)', label: 'Busy' };
+      return { bg: '#fde725', text: '#0f172a', border: 'rgba(226,232,240,0.62)', label: 'PEAK' };
     }
   };
 
@@ -234,8 +234,8 @@ export const AdminHeatmapPage = () => {
                         key={cIdx}
                         onMouseEnter={() => setHoveredCell({ row: rIdx, col: cIdx, val, bld, time, label: style.label })}
                         onMouseLeave={() => setHoveredCell(null)}
-                        style={{ backgroundColor: style.bg, borderColor: style.border }}
-                        className="h-16 rounded-xl border flex flex-col items-center justify-center p-2 cursor-pointer transition-all hover:scale-105 hover:z-20 shadow-md group relative"
+                        style={{ backgroundColor: style.bg, borderColor: style.border, outline: 'none', boxShadow: 'none' }}
+                        className="h-16 rounded-xl border border-solid flex flex-col items-center justify-center p-2 cursor-pointer transition-all hover:scale-105 hover:z-20 group relative"
                       >
                         <span className="text-lg font-black tracking-tight" style={{ color: style.text }}>
                           {val}%

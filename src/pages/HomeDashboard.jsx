@@ -51,6 +51,12 @@ export const HomeDashboard = () => {
   const { activeRole, switchRole, user } = useRole();
   const { addToast } = useToast();
   
+  useEffect(() => {
+    if (activeRole === 'admin') {
+      navigate('/admin', { replace: true });
+    }
+  }, [activeRole, navigate]);
+
   const [searchParams, setSearchParams] = useSearchParams();
   const portalTab = searchParams.get('tab') || 'home';
 

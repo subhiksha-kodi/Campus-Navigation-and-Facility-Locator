@@ -56,12 +56,11 @@ export const AdminSidebar = ({ isOpen, onClose }) => {
       ]
     },
     {
-      title: 'Infrastructure & Map',
+      title: 'Infrastructure',
       items: [
         { name: 'Building Management', path: '/admin/buildings', icon: Building2 },
         { name: 'Room / Classroom', path: '/admin/rooms', icon: Layers },
-        { name: 'Facility Management', path: '/admin/facilities', icon: Shield },
-        { name: 'Campus Map & Routes', path: '/admin/map', icon: Map }
+        { name: 'Facility Management', path: '/admin/facilities', icon: Shield }
       ]
     },
     {
@@ -104,9 +103,8 @@ export const AdminSidebar = ({ isOpen, onClose }) => {
 
       {/* Admin Navigation Sidebar Container */}
       <aside
-        className={`fixed top-0 bottom-0 left-0 z-40 w-64 bg-slate-950 text-slate-300 flex flex-col border-r border-slate-800 transition-transform duration-200 ease-in-out lg:translate-x-0 ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
+        className={`fixed top-0 bottom-0 left-0 z-40 w-64 bg-slate-950 text-slate-300 flex flex-col border-r border-slate-800 transition-transform duration-200 ease-in-out lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
       >
         {/* Brand Header */}
         <div className="h-16 px-5 flex items-center justify-between border-b border-slate-800 shrink-0">
@@ -156,20 +154,18 @@ export const AdminSidebar = ({ isOpen, onClose }) => {
                     key={item.path}
                     to={item.path}
                     onClick={() => { if (isOpen) onClose(); }}
-                    className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
-                      isActive
+                    className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-colors ${isActive
                         ? 'bg-amber-500 text-slate-950 font-bold shadow-xs'
                         : 'text-slate-300 hover:bg-slate-900 hover:text-white'
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center gap-2.5">
                       <Icon className={`w-4 h-4 ${isActive ? 'text-slate-950' : 'text-slate-400'}`} />
                       <span className="truncate">{item.name}</span>
                     </div>
                     {item.badge && (
-                      <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-extrabold ${
-                        isActive ? 'bg-slate-950 text-amber-400' : 'bg-amber-500/20 text-amber-400 border border-amber-500/40'
-                      }`}>
+                      <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-extrabold ${isActive ? 'bg-slate-950 text-amber-400' : 'bg-amber-500/20 text-amber-400 border border-amber-500/40'
+                        }`}>
                         {item.badge}
                       </span>
                     )}

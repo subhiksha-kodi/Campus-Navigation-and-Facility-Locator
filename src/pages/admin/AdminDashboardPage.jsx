@@ -35,7 +35,7 @@ export const AdminDashboardPage = () => {
     { label: 'TOTAL STUDENTS', val: '4,250', sub: 'Enrolled across 6 Depts', icon: Users, color: 'border-l-blue-600 text-blue-600 bg-blue-50/50' },
     { label: 'TOTAL FACULTY', val: `${metrics.totalFaculty}`, sub: 'Active Teaching Staff', icon: UserCheck, color: 'border-l-emerald-600 text-emerald-600 bg-emerald-50/50' },
     { label: 'TOTAL DEPARTMENTS', val: `${metrics.totalDepartments}`, sub: 'CSE, ECE, EEE, MECH, CIVIL, AI&DS', icon: Building, color: 'border-l-purple-600 text-purple-600 bg-purple-50/50' },
-    { label: 'TOTAL BUILDINGS', val: `${metrics.totalBuildings}`, sub: 'Sunflower, Mechanical, AS, IB', icon: Building2, color: 'border-l-indigo-600 text-indigo-600 bg-indigo-50/50' },
+    { label: 'TOTAL BUILDINGS', val: `${metrics.totalBuildings}`, sub: 'AS, IB, Sunflower, Mechanical, Research Park', icon: Building2, color: 'border-l-indigo-600 text-indigo-600 bg-indigo-50/50' },
     { label: 'TOTAL CLASSROOMS', val: `${metrics.totalClassrooms}`, sub: 'Labs, Halls & Smart Rooms', icon: Layers, color: 'border-l-sky-600 text-sky-600 bg-sky-50/50' },
     { label: 'TOTAL FACILITIES', val: `${metrics.totalFacilities}`, sub: 'Printers, Wi-Fi, Lifts & ATMs', icon: Shield, color: 'border-l-teal-600 text-teal-600 bg-teal-50/50' },
     { label: "TODAY'S CLASSES", val: '146', sub: 'Scheduled & In-Session', icon: Calendar, color: 'border-l-amber-500 text-amber-600 bg-amber-50/50' },
@@ -66,7 +66,7 @@ export const AdminDashboardPage = () => {
         breadcrumbs={[{ label: 'Control Center Dashboard' }]}
         actions={
           <Badge variant="navy" size="md" className="!bg-slate-900 !text-amber-400 font-bold border-slate-700">
-            👑 System Administrator Authorized
+            🎓 Office of the Dean Authorized
           </Badge>
         }
       />

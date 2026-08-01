@@ -6,53 +6,43 @@ const RoleContext = createContext();
 export const DEMO_USERS = {
   student: {
     id: 'usr_std_1',
-    name: 'Alex Vance',
+    name: 'Hariharan S.',
     role: 'student',
     roleLabel: 'Student',
     department: 'Computer Science & Eng',
     idNumber: 'CS-2024-089',
     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80',
-    email: 'alex.vance@campus.edu'
+    email: 'hariharan.std@campus.edu'
   },
   faculty: {
     id: 'usr_fac_1',
-    name: 'Dr. Gayathri Devi',
+    name: 'Dr. Hariharan',
     role: 'faculty',
     roleLabel: 'Faculty',
     department: 'Department of Computing',
     idNumber: 'FAC-9402',
     avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=120&h=120&q=80',
-    email: 'gayathri.devi@campus.edu'
+    email: 'hariharan@campus.edu'
   },
   visitor: {
     id: 'usr_vis_1',
-    name: 'Sarah Jenkins',
+    name: 'Sanjana P.',
     role: 'visitor',
     roleLabel: 'Campus Visitor',
     department: 'Guest / Parent',
     idNumber: 'PASS-88392',
     avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&h=120&q=80',
-    email: 'sarah.j@gmail.com'
-  },
-  security: {
-    id: 'usr_sec_1',
-    name: 'Officer Marcus Drake',
-    role: 'security',
-    roleLabel: 'Campus Security',
-    department: 'Safety & Dispatch',
-    idNumber: 'SEC-402',
-    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&h=120&q=80',
-    email: 'security.drake@campus.edu'
+    email: 'sanjana.guest@gmail.com'
   },
   admin: {
     id: 'usr_adm_1',
-    name: 'Eleanor Vance',
+    name: 'Dean',
     role: 'admin',
-    roleLabel: 'System Administrator',
-    department: 'Facility & IT Ops',
-    idNumber: 'ADM-001',
+    roleLabel: 'Campus Dean',
+    department: 'Office of the Dean & Academic Affairs',
+    idNumber: 'DEAN-001',
     avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=120&h=120&q=80',
-    email: 'admin.vance@campus.edu'
+    email: 'dean@campus.edu'
   }
 };
 

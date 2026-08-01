@@ -1,14 +1,14 @@
-import React from 'react';
-import { Navigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
 import { useRole } from '../../context/RoleContext';
 
 export const FacultyRouteGuard = ({ children }) => {
-  const { activeRole } = useRole();
+  const { activeRole, switchRole } = useRole();
 
-  if (activeRole !== 'faculty') {
-    // Redirect non-faculty users attempting to access /faculty/* routes
-    return <Navigate to="/login" replace />;
-  }
+  useEffect(() => {
+    if (activeRole !== 'faculty') {
+      switchRole('faculty');
+    }
+  }, [activeRole, switchRole]);
 
   return children;
 };

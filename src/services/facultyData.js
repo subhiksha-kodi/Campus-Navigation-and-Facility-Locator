@@ -3,11 +3,11 @@
 export const INITIAL_FACULTY_PROFILE = {
   id: 'fac_101',
   faculty_id: 'FAC-9402',
-  name: 'Dr. Gayathri Devi',
+  name: 'Dr. K. Arunkumar',
   department: 'Department of Computer Science & Engineering',
   designation: 'Associate Professor',
-  email: 'gayathri.devi@campus.edu',
-  phone: '+1 (555) 234-5678',
+  email: 'arunkumar@campus.edu',
+  phone: '+91 98450 23456',
   specialization: 'Database Systems & Operating Systems',
   avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=200&h=200&q=80',
   office_location: 'Mechanical Block, Room MB-204',
@@ -289,9 +289,10 @@ export const FACULTY_NOTIFICATIONS = [
 export const ALL_FACULTY_MEMBERS = [
   {
     id: 'FAC-9402',
-    name: 'Dr. Gayathri Devi',
+    name: 'Dr. Hariharan',
     designation: 'Associate Professor',
     department: 'Computer Science & Eng',
+    office_location: 'Sunflower Block, Room SF-303',
     specialization: 'Database Systems & OS',
     avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=200&h=200&q=80',
     freeSlots: ['11:00 AM - 12:00 PM', '01:00 PM - 02:00 PM'],
@@ -299,9 +300,10 @@ export const ALL_FACULTY_MEMBERS = [
   },
   {
     id: 'FAC-8120',
-    name: 'Prof. Kiruthika',
+    name: 'Dr. Rishitha',
     designation: 'Assistant Professor',
     department: 'Computer Science & Eng',
+    office_location: 'AS Block, Room AS-204',
     specialization: 'Cybersecurity & Networks',
     avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=200&h=200&q=80',
     freeSlots: ['09:00 AM - 10:00 AM', '02:00 PM - 04:00 PM'],
@@ -309,9 +311,10 @@ export const ALL_FACULTY_MEMBERS = [
   },
   {
     id: 'FAC-7491',
-    name: 'Dr. Manjula',
+    name: 'Prof. Akalya',
     designation: 'Professor',
     department: 'Computer Science & Eng',
+    office_location: 'Sunflower Block, Room SF-401',
     specialization: 'Artificial Intelligence & ML',
     avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&h=200&q=80',
     freeSlots: ['09:00 AM - 10:00 AM', '10:00 AM - 11:00 AM', '02:00 PM - 04:00 PM'],
@@ -319,9 +322,10 @@ export const ALL_FACULTY_MEMBERS = [
   },
   {
     id: 'FAC-6302',
-    name: 'Prof. Kalaiyarasi',
+    name: 'Dr. Jeswin',
     designation: 'Associate Professor',
     department: 'Information Technology',
+    office_location: 'Research Park, Room RP-302',
     specialization: 'Data Mining & Big Data',
     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&h=200&q=80',
     freeSlots: ['09:00 AM - 10:00 AM', '10:00 AM - 11:00 AM', '11:00 AM - 12:00 PM'],
@@ -329,13 +333,69 @@ export const ALL_FACULTY_MEMBERS = [
   },
   {
     id: 'FAC-5219',
-    name: 'Dr. Revathi',
+    name: 'Prof. Sai Prasath',
     designation: 'Assistant Professor',
     department: 'Software Engineering',
+    office_location: 'Mechanical Block, Room MB-102',
     specialization: 'Cloud Computing & DevOps',
     avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&h=200&q=80',
     freeSlots: ['09:00 AM - 10:00 AM', '02:00 PM - 04:00 PM'],
     busySlots: ['10:00 AM - 11:00 AM', '11:00 AM - 12:00 PM']
+  },
+  {
+    id: 'FAC-4105',
+    name: 'Dr. Rohit',
+    designation: 'Professor',
+    department: 'Electronics & Communication Eng',
+    office_location: 'AS Block, Room AS-301',
+    specialization: 'VLSI & Embedded Systems',
+    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&h=200&q=80',
+    freeSlots: ['10:00 AM - 11:00 AM', '02:00 PM - 03:00 PM'],
+    busySlots: ['09:00 AM - 10:00 AM', '11:00 AM - 12:00 PM']
+  },
+  {
+    id: 'FAC-3098',
+    name: 'Dr. Sanjana',
+    designation: 'Associate Professor',
+    department: 'Artificial Intelligence & Data Science',
+    office_location: 'Research Park, Room RP-405',
+    specialization: 'Neural Networks & Deep Learning',
+    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&h=200&q=80',
+    freeSlots: ['09:00 AM - 11:00 AM'],
+    busySlots: ['02:00 PM - 04:00 PM']
+  },
+  {
+    id: 'FAC-2081',
+    name: 'Prof. Kishore',
+    designation: 'Assistant Professor',
+    department: 'Mechanical Engineering',
+    office_location: 'Mechanical Block, Room MB-205',
+    specialization: 'Thermodynamics & CAD/CAM',
+    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=200&h=200&q=80',
+    freeSlots: ['11:00 AM - 12:00 PM', '03:00 PM - 04:00 PM'],
+    busySlots: ['09:00 AM - 11:00 AM']
+  },
+  {
+    id: 'FAC-1077',
+    name: 'Dr. Akilesh',
+    designation: 'Associate Professor',
+    department: 'Civil Engineering',
+    office_location: 'IB Block, Room IB-201',
+    specialization: 'Structural Engineering',
+    avatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=200&h=200&q=80',
+    freeSlots: ['09:00 AM - 10:00 AM', '01:00 PM - 02:00 PM'],
+    busySlots: ['10:00 AM - 12:00 PM']
+  },
+  {
+    id: 'FAC-0954',
+    name: 'Dr. Arjun',
+    designation: 'Professor',
+    department: 'Electrical & Electronics Eng',
+    office_location: 'AS Block, Room AS-102',
+    specialization: 'Power Systems & Renewable Energy',
+    avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=200&h=200&q=80',
+    freeSlots: ['10:00 AM - 12:00 PM'],
+    busySlots: ['02:00 PM - 04:00 PM']
   }
 ];
 

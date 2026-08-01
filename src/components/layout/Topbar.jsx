@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Menu, Search, Bell, Shield, UserCheck, Compass, LogOut } from 'lucide-react';
-import { useRole, getRoleLabel } from '../../context/RoleContext';
+import { Menu, Search, Bell, Shield, UserCheck, Compass, LogOut, ChevronDown, Check } from 'lucide-react';
+import { useRole, getRoleLabel, DEMO_USERS } from '../../context/RoleContext';
 import { Dropdown } from '../ui/Dropdown';
 import { Badge } from '../ui/Badge';
 
@@ -54,11 +54,47 @@ export const Topbar = ({ onMenuClick }) => {
       {/* Right: Role Switcher, Notifications, User Avatar */}
       <div className="flex items-center gap-2.5">
         {/* Role Switcher Pill */}
-        {/* Role Indicator */}
-        <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 bg-slate-50 text-xs font-semibold text-slate-700 select-none shadow-sm">
-          <UserCheck className="w-3.5 h-3.5 text-blue-600" />
-          <span>Role: <strong className="text-slate-900 capitalize">{getRoleLabel(activeRole)}</strong></span>
-        </div>
+        <Dropdown
+          trigger={
+            <button className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 transition-colors text-xs font-medium text-slate-700">
+              <UserCheck className="w-3.5 h-3.5 text-blue-600" />
+              <span>Role: <strong className="text-slate-900 capitalize">{getRoleLabel(activeRole)}</strong></span>
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+            </button>
+          }
+        >
+          <div className="p-2 border-b border-slate-100">
+            <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Switch View Persona</p>
+            <p className="text-[11px] text-slate-500">Test WayFindYou as different users</p>
+          </div>
+          <div className="py-1">
+            {allRoles.map((r) => {
+              const info = DEMO_USERS[r];
+              const isCurrent = activeRole === r;
+              return (
+                <button
+                  key={r}
+                  onClick={() => {
+                    switchRole(r);
+                    if (r === 'faculty') {
+                      navigate('/faculty/dashboard');
+                    } else if (window.location.pathname.startsWith('/faculty')) {
+                      navigate('/home');
+                    }
+                  }}
+                  className={`w-full text-left px-3 py-2 text-xs flex items-center justify-between hover:bg-slate-50 transition-colors ${isCurrent ? 'font-semibold text-blue-600 bg-blue-50/50' : 'text-slate-700'
+                    }`}
+                >
+                  <div className="flex flex-col">
+                    <span>{info.roleLabel}</span>
+                    <span className="text-[10px] text-slate-400 font-normal">{info.name}</span>
+                  </div>
+                  {isCurrent && <Check className="w-4 h-4 text-blue-600" />}
+                </button>
+              );
+            })}
+          </div>
+        </Dropdown>
 
         {/* Notifications Icon */}
         <div className="relative">
@@ -90,7 +126,6 @@ export const Topbar = ({ onMenuClick }) => {
                 <NavLink
                   to="/notices"
                   onClick={() => setNotificationsOpen(false)}
-                  className="text-xs font-medium text-blue-600 hover:text-blue-700"
                 >
                   View All Campus Notices →
                 </NavLink>
@@ -119,10 +154,10 @@ export const Topbar = ({ onMenuClick }) => {
             </div>
           </div>
           <div className="py-1">
-            <NavLink to="/profile" className="block px-4 py-2 text-xs text-slate-700 hover:bg-slate-50">
+            <NavLink to={activeRole === 'admin' ? '/admin/profile' : activeRole === 'faculty' ? '/faculty/profile' : '/profile'} className="block px-4 py-2 text-xs text-slate-700 hover:bg-slate-50">
               My Profile
             </NavLink>
-            <NavLink to="/settings" className="block px-4 py-2 text-xs text-slate-700 hover:bg-slate-50">
+            <NavLink to={activeRole === 'admin' ? '/admin/settings' : '/settings'} className="block px-4 py-2 text-xs text-slate-700 hover:bg-slate-50">
               Settings & Accessibility
             </NavLink>
             <NavLink to="/" className="block px-4 py-2 text-xs text-red-600 hover:bg-red-50 font-medium">

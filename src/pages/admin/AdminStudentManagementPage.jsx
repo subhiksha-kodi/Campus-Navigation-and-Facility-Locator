@@ -116,8 +116,8 @@ export const AdminStudentManagementPage = () => {
               <button onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
             </div>
             <form onSubmit={handleCreateStudent} className="space-y-3">
-              <Input label="Student Full Name" placeholder="e.g. David Miller" value={name} onChange={(e) => setName(e.target.value)} required />
-              <Input label="Email Address" type="email" placeholder="e.g. d.miller@campus.edu" value={email} onChange={(e) => setEmail(e.target.value)} required />
+              <Input label="Student Full Name" placeholder="e.g. Hariharan S." value={name} onChange={(e) => setName(e.target.value)} required />
+              <Input label="Email Address" type="email" placeholder="e.g. hariharan.std@campus.edu" value={email} onChange={(e) => setEmail(e.target.value)} required />
               <Select label="Department" value={department} onChange={(e) => setDepartment(e.target.value)} options={[{ value: 'CSE', label: 'Computer Science & Eng' }, { value: 'IT', label: 'Information Technology' }, { value: 'ECE', label: 'Electronics & Comm Eng' }, { value: 'MECH', label: 'Mechanical Eng' }]} />
               <Select label="Year" value={year} onChange={(e) => setYear(e.target.value)} options={[{ value: 'I', label: 'Year I' }, { value: 'II', label: 'Year II' }, { value: 'III', label: 'Year III' }, { value: 'IV', label: 'Year IV' }]} />
               <Select label="Section" value={section} onChange={(e) => setSection(e.target.value)} options={[{ value: 'A', label: 'Section A' }, { value: 'B', label: 'Section B' }, { value: 'C', label: 'Section C' }]} />

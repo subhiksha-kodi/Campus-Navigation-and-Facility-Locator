@@ -21,6 +21,7 @@ import {
   INITIAL_SYSTEM_SETTINGS
 } from '../services/adminData';
 import { ALL_FACULTY_MEMBERS } from '../services/facultyData';
+import { INITIAL_VENUE_BOOKINGS } from '../services/bookingData';
 
 const AdminContext = createContext();
 
@@ -31,6 +32,31 @@ const getInitialState = (key, fallback) => {
   } catch (err) {
     return fallback;
   }
+};
+
+const sanitizeStudents = (rawStudents) => {
+  const oldNames = ['Alex Vance', 'Samantha Reed', 'David Miller', 'Priya Sharma', 'Rohan Gupta', 'Gajal'];
+  const cleaned = (rawStudents || [])
+    .filter(s => s && s.name && !oldNames.includes(s.name) && s.name.toLowerCase() !== 'jsdbk')
+    .map(s => ({
+      ...s,
+      name: s.name.replace(/\.$/, '').trim()
+    }));
+  if (cleaned.length === 0) {
+    return INITIAL_STUDENTS;
+  }
+  return cleaned;
+};
+
+const sanitizeFaculty = (rawFaculty) => {
+  const cleaned = (rawFaculty || []).filter(f => f && f.name && f.name.toLowerCase() !== 'jsdbk');
+  if (cleaned.length === 0) return ALL_FACULTY_MEMBERS;
+  return cleaned.map(f => ({
+    ...f,
+    office_location: (!f.office_location || f.office_location.toLowerCase().includes('jsdbk'))
+      ? 'Sunflower Block, Room SF-303'
+      : f.office_location
+  }));
 };
 
 export const AdminProvider = ({ children }) => {
@@ -46,8 +72,8 @@ export const AdminProvider = ({ children }) => {
     }));
   });
   const [departments, setDepartments] = useState(() => getInitialState('departments', INITIAL_DEPARTMENTS));
-  const [students, setStudents] = useState(() => getInitialState('students', INITIAL_STUDENTS));
-  const [faculty, setFaculty] = useState(() => getInitialState('faculty', ALL_FACULTY_MEMBERS));
+  const [students, setStudents] = useState(() => sanitizeStudents(getInitialState('students', INITIAL_STUDENTS)));
+  const [faculty, setFaculty] = useState(() => sanitizeFaculty(getInitialState('faculty', ALL_FACULTY_MEMBERS)));
   const [buildings, setBuildings] = useState(() => getInitialState('buildings', INITIAL_BUILDINGS));
   const [rooms, setRooms] = useState(() => getInitialState('rooms', INITIAL_ROOMS));
   const [subjects, setSubjects] = useState(() => getInitialState('subjects', INITIAL_SUBJECTS));
@@ -61,6 +87,7 @@ export const AdminProvider = ({ children }) => {
   const [routes, setRoutes] = useState(() => getInitialState('routes', INITIAL_CAMPUS_ROUTES));
   const [visitors, setVisitors] = useState(() => getInitialState('visitors', INITIAL_VISITOR_REQUESTS));
   const [complaints, setComplaints] = useState(() => getInitialState('complaints', INITIAL_COMPLAINTS_MONITORING));
+  const [venueBookings, setVenueBookings] = useState(() => getInitialState('venueBookings', INITIAL_VENUE_BOOKINGS));
   const [heatmap] = useState(INITIAL_HEATMAP_DATA);
   const [auditLogs, setAuditLogs] = useState(() => getInitialState('auditLogs', INITIAL_AUDIT_LOGS));
   const [settings, setSettings] = useState(() => getInitialState('settings', INITIAL_SYSTEM_SETTINGS));
@@ -83,6 +110,7 @@ export const AdminProvider = ({ children }) => {
   useEffect(() => { localStorage.setItem('admin_routes', JSON.stringify(routes)); }, [routes]);
   useEffect(() => { localStorage.setItem('admin_visitors', JSON.stringify(visitors)); }, [visitors]);
   useEffect(() => { localStorage.setItem('admin_complaints', JSON.stringify(complaints)); }, [complaints]);
+  useEffect(() => { localStorage.setItem('admin_venueBookings', JSON.stringify(venueBookings)); }, [venueBookings]);
   useEffect(() => { localStorage.setItem('admin_auditLogs', JSON.stringify(auditLogs)); }, [auditLogs]);
   useEffect(() => { localStorage.setItem('admin_settings', JSON.stringify(settings)); }, [settings]);
 
@@ -430,6 +458,50 @@ export const AdminProvider = ({ children }) => {
     campusOccupancy: '72%'
   };
 
+  // Venue & Slot Booking Handlers
+  const addVenueBooking = (bookingData) => {
+    // Conflict Check: Check if room + date + overlapping time already exists in venueBookings (excluding Cancelled/Rejected)
+    const hasConflict = venueBookings.some(b => 
+      b.room.toLowerCase() === bookingData.room.toLowerCase() &&
+      b.bookingDate === bookingData.bookingDate &&
+      b.status !== 'Cancelled' &&
+      b.status !== 'Rejected' &&
+      (
+        (bookingData.startTime >= b.startTime && bookingData.startTime < b.endTime) ||
+        (bookingData.endTime > b.startTime && bookingData.endTime <= b.endTime) ||
+        (bookingData.startTime <= b.startTime && bookingData.endTime >= b.endTime)
+      )
+    );
+
+    if (hasConflict) {
+      return {
+        success: false,
+        message: 'This venue is already reserved for the selected time.'
+      };
+    }
+
+    const newBooking = {
+      id: `BKG-${Math.floor(900 + Math.random() * 100)}`,
+      ...bookingData,
+      status: 'Pending',
+      createdAt: new Date().toISOString().replace('T', ' ').substring(0, 16)
+    };
+
+    setVenueBookings(prev => [newBooking, ...prev]);
+    logAuditAction('CREATE_VENUE_BOOKING', 'Venue & Slot Booking', null, newBooking.id);
+    return { success: true, booking: newBooking };
+  };
+
+  const cancelVenueBooking = (bookingId) => {
+    setVenueBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status: 'Cancelled' } : b));
+    logAuditAction('CANCEL_VENUE_BOOKING', 'Venue & Slot Booking', bookingId, 'Cancelled');
+  };
+
+  const updateBookingStatus = (bookingId, newStatus) => {
+    setVenueBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status: newStatus } : b));
+    logAuditAction('UPDATE_VENUE_BOOKING_STATUS', 'Venue & Slot Booking', bookingId, newStatus);
+  };
+
   return (
     <AdminContext.Provider
       value={{
@@ -450,6 +522,7 @@ export const AdminProvider = ({ children }) => {
         routes,
         visitors,
         complaints,
+        venueBookings,
         heatmap,
         auditLogs,
         settings,
@@ -472,6 +545,9 @@ export const AdminProvider = ({ children }) => {
         toggleRouteBlockedStatus,
         updateVisitorStatus,
         updateComplaintStatus,
+        addVenueBooking,
+        cancelVenueBooking,
+        updateBookingStatus,
         addFacility,
         logAuditAction,
         setSettings

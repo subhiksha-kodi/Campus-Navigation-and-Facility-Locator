@@ -12,14 +12,14 @@ export const FacultyLoginPage = () => {
   const { addToast } = useToast();
   const { switchRole } = useRole();
 
-  const [email, setEmail] = useState('gayathri.devi@campus.edu');
+  const [email, setEmail] = useState('hariharan@campus.edu');
   const [facultyId, setFacultyId] = useState('FAC-9402');
   const [password, setPassword] = useState('••••••••');
 
   const handleFacultyLogin = (e) => {
     e.preventDefault();
     switchRole('faculty');
-    addToast('Authenticated as Dr. Gayathri Devi (Faculty Portal)', 'success');
+    addToast('Authenticated as Dr. Hariharan (Faculty Portal)', 'success');
     navigate('/faculty/dashboard');
   };
 

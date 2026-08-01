@@ -1,8 +1,8 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { ShieldAlert, LogIn, ArrowRight } from 'lucide-react';
-import { useRole } from '../../context/RoleContext';
+import { ShieldAlert, LogIn } from 'lucide-react';
 import { Button } from '../ui/Button';
+import { useRole } from '../../context/RoleContext';
 
 export const AdminRouteGuard = ({ children }) => {
   const { activeRole, switchRole } = useRole();
