@@ -29,7 +29,7 @@ import {
 import { useRole } from '../../context/RoleContext';
 
 export const AdminSidebar = ({ isOpen, onClose }) => {
-  const { switchRole, user } = useRole();
+  const { switchRole, logout, user } = useRole();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -88,7 +88,7 @@ export const AdminSidebar = ({ isOpen, onClose }) => {
   ];
 
   const handleLogout = () => {
-    switchRole('student');
+    logout();
     navigate('/login');
   };
 

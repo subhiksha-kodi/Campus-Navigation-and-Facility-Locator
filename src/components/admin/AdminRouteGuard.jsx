@@ -28,9 +28,11 @@ export const AdminRouteGuard = ({ children }) => {
               size="md"
               fullWidth
               icon={LogIn}
-              onClick={() => switchRole('admin')}
+              onClick={() => {
+                window.location.href = '/login';
+              }}
             >
-              Switch Role to System Administrator
+              Sign In as Administrator
             </Button>
 
             <NavLink to="/home" className="block text-xs font-semibold text-slate-400 hover:text-white pt-2">

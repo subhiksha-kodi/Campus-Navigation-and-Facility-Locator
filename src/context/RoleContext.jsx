@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { validateSessionToken, authenticateUser } from '../services/authService';
 
 const RoleContext = createContext();
 
@@ -55,18 +56,80 @@ export const DEMO_USERS = {
   }
 };
 
+export const getRoleLabel = (role) => {
+  const labels = {
+    student: 'Student',
+    faculty: 'Faculty & Staff',
+    visitor: 'Campus Visitor',
+    security: 'Campus Security',
+    admin: 'System Administrator'
+  };
+  return labels[role] || 'Student';
+};
+
 export const RoleProvider = ({ children }) => {
-  const [activeRole, setActiveRole] = useState('student');
-  const user = DEMO_USERS[activeRole] || DEMO_USERS.student;
+  const [user, setUser] = useState(() => {
+    const validated = validateSessionToken();
+    if (validated) {
+      const savedUser = localStorage.getItem('wayfindyou_user');
+      if (savedUser) {
+        const u = JSON.parse(savedUser);
+        return {
+          ...u,
+          roleLabel: getRoleLabel(u.role)
+        };
+      }
+    }
+    return {
+      ...DEMO_USERS.student,
+      roleLabel: 'Student'
+    };
+  });
+
+  const [activeRole, setActiveRole] = useState(() => {
+    const validated = validateSessionToken();
+    return validated ? validated.role : 'student';
+  });
 
   const switchRole = (newRole) => {
     if (DEMO_USERS[newRole]) {
       setActiveRole(newRole);
+      const fullUser = {
+        ...DEMO_USERS[newRole],
+        roleLabel: getRoleLabel(newRole)
+      };
+      setUser(fullUser);
+      localStorage.setItem('wayfindyou_user', JSON.stringify(fullUser));
+      const mockToken = btoa(JSON.stringify({ id: fullUser.id, role: newRole, exp: Date.now() + 3600000 }));
+      localStorage.setItem('wayfindyou_token', mockToken);
     }
   };
 
+  const login = async (email, password) => {
+    const { user: authenticatedUser } = await authenticateUser(email, password);
+    const fullUser = {
+      ...authenticatedUser,
+      roleLabel: getRoleLabel(authenticatedUser.role),
+      avatar: DEMO_USERS[authenticatedUser.role]?.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=120&h=120&q=80'
+    };
+    setUser(fullUser);
+    setActiveRole(authenticatedUser.role);
+    localStorage.setItem('wayfindyou_user', JSON.stringify(fullUser));
+    return fullUser;
+  };
+
+  const logout = () => {
+    localStorage.removeItem('wayfindyou_token');
+    localStorage.removeItem('wayfindyou_user');
+    setUser({
+      ...DEMO_USERS.student,
+      roleLabel: 'Student'
+    });
+    setActiveRole('student');
+  };
+
   return (
-    <RoleContext.Provider value={{ activeRole, switchRole, user, allRoles: Object.keys(DEMO_USERS) }}>
+    <RoleContext.Provider value={{ activeRole, switchRole, user, login, logout, allRoles: Object.keys(DEMO_USERS) }}>
       {children}
     </RoleContext.Provider>
   );

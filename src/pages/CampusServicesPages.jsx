@@ -245,7 +245,7 @@ export const TimetablePage = () => {
 // 4. Visitor Portal Page
 export const VisitorPortalPage = () => {
   const { addToast } = useToast();
-  const { activeRole, switchRole, user } = useRole();
+  const { activeRole, switchRole, logout, user } = useRole();
 
   // Internal states
   const [authTab, setAuthTab] = useState('login'); // 'login' | 'register'
@@ -629,7 +629,7 @@ export const VisitorPortalPage = () => {
               size="sm"
               icon={LogOut}
               onClick={() => {
-                switchRole('student');
+                logout();
                 addToast('Signed out of visitor portal.', 'info');
               }}
             >

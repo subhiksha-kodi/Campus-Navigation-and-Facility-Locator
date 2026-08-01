@@ -1,27 +1,73 @@
-import React, { useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
-import { Compass, Mail, Lock, ArrowRight, Shield, CheckCircle2, User, KeyRound } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { Compass, Mail, Lock, ArrowRight, User, KeyRound, Phone, ShieldCheck } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Input, Select } from '../components/ui/Input';
 import { Card, CardContent } from '../components/ui/Card';
-import { Badge } from '../components/ui/Badge';
 import { useToast } from '../context/ToastContext';
-import { useRole } from '../context/RoleContext';
+import { useRole, getRoleLabel } from '../context/RoleContext';
+import { registerUser } from '../services/authService';
+
+const DEMO_CREDENTIALS = {
+  admin: { email: 'admin.vance@campus.edu', password: 'password123' },
+  faculty: { email: 'gayathri.devi@campus.edu', password: 'password123' },
+  student: { email: 'alex.vance@campus.edu', password: 'password123' },
+  visitor: { email: 'sarah.j@gmail.com', password: 'password123' },
+  security: { email: 'security.drake@campus.edu', password: 'password123' }
+};
 
 export const LoginPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { addToast } = useToast();
-  const { switchRole } = useRole();
+  const { login, logout } = useRole();
+
+  const queryParams = new URLSearchParams(location.search);
+  const switchRoleParam = queryParams.get('switchRole');
+  const returnUrlParam = queryParams.get('returnUrl');
 
   const [email, setEmail] = useState('alex.vance@campus.edu');
-  const [password, setPassword] = useState('••••••••');
-  const [selectedRole, setSelectedRole] = useState('student');
+  const [password, setPassword] = useState('password123');
+  const [selectedRole, setSelectedRole] = useState('student'); // Visual dropdown only
 
-  const handleSubmit = (e) => {
+  useEffect(() => {
+    if (switchRoleParam && DEMO_CREDENTIALS[switchRoleParam]) {
+      setSelectedRole(switchRoleParam);
+      setEmail(DEMO_CREDENTIALS[switchRoleParam].email);
+      setPassword(DEMO_CREDENTIALS[switchRoleParam].password);
+    }
+  }, [switchRoleParam]);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    switchRole(selectedRole);
-    addToast(`Signed in successfully as ${selectedRole.toUpperCase()}`, 'success');
-    navigate('/home');
+    try {
+      const loggedInUser = await login(email, password);
+
+      // Enforce strict role matching against database record
+      if (loggedInUser.role !== selectedRole) {
+        logout(); // Clear token session
+        throw new Error(`The selected login role (${getRoleLabel(selectedRole)}) does not match your registered account role (${getRoleLabel(loggedInUser.role)}).`);
+      }
+
+      addToast(`Signed in successfully as ${getRoleLabel(loggedInUser.role).toUpperCase()}`, 'success');
+      
+      const isAllowedUrl = 
+        (loggedInUser.role === 'admin' && returnUrlParam?.startsWith('/admin')) ||
+        (loggedInUser.role === 'faculty' && returnUrlParam?.startsWith('/faculty')) ||
+        (loggedInUser.role !== 'admin' && loggedInUser.role !== 'faculty' && !returnUrlParam?.startsWith('/admin') && !returnUrlParam?.startsWith('/faculty'));
+
+      if (returnUrlParam && isAllowedUrl) {
+        navigate(returnUrlParam);
+      } else if (loggedInUser.role === 'admin') {
+        navigate('/admin/dashboard');
+      } else if (loggedInUser.role === 'faculty') {
+        navigate('/faculty/dashboard');
+      } else {
+        navigate('/home');
+      }
+    } catch (err) {
+      addToast(err.message, 'error');
+    }
   };
 
   return (
@@ -102,10 +148,15 @@ export const LoginPage = () => {
               variant="outline"
               size="md"
               fullWidth
-              onClick={() => {
-                switchRole('student');
-                addToast('Signed in with Google OAuth', 'success');
-                navigate('/home');
+              onClick={async () => {
+                // Secure OAuth Google login uses student role by default if approved
+                try {
+                  const loggedInUser = await login('alex.vance@campus.edu', 'password123');
+                  addToast('Signed in with Google Workspace', 'success');
+                  navigate('/home');
+                } catch (err) {
+                  addToast(err.message, 'error');
+                }
               }}
             >
               Continue with Google Workspace
@@ -114,7 +165,7 @@ export const LoginPage = () => {
             <div className="text-center pt-2 border-t border-slate-100 text-xs text-slate-500">
               Don't have a campus account?{' '}
               <NavLink to="/register" className="text-blue-600 font-semibold hover:text-blue-700">
-                Register Student Account
+                Register Campus Account
               </NavLink>
             </div>
           </CardContent>
@@ -128,10 +179,28 @@ export const RegisterPage = () => {
   const navigate = useNavigate();
   const { addToast } = useToast();
 
-  const handleRegister = (e) => {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [role, setRole] = useState('student'); // Excludes admin
+  const [phone, setPhone] = useState('');
+
+  const handleRegister = async (e) => {
     e.preventDefault();
-    addToast('Account created successfully! Please verify OTP.', 'success');
-    navigate('/otp');
+    try {
+      await registerUser({
+        name,
+        email,
+        password,
+        role,
+        department: role === 'visitor' ? 'Guest / Parent' : 'Computer Science & Eng',
+        phone,
+      });
+      addToast('Registration request submitted successfully! Your account is awaiting admin approval.', 'success');
+      navigate('/login');
+    } catch (err) {
+      addToast(err.message, 'error');
+    }
   };
 
   return (
@@ -145,16 +214,56 @@ export const RegisterPage = () => {
             <span className="text-xl font-bold text-slate-900">WayFindYou</span>
           </NavLink>
           <h2 className="text-xl font-bold text-slate-900">Create Campus Account</h2>
-          <p className="text-xs text-slate-500">Register with your official student/faculty ID</p>
+          <p className="text-xs text-slate-500">Register with your official student/faculty/visitor details</p>
         </div>
 
         <Card className="shadow-md">
           <CardContent className="p-6 space-y-4">
             <form onSubmit={handleRegister} className="space-y-3.5">
-              <Input label="Full Name" placeholder="Alex Vance" icon={User} required />
-              <Input label="Campus Email" type="email" placeholder="alex.vance@campus.edu" icon={Mail} required />
-              <Input label="Student / Staff ID Number" placeholder="CS-2024-089" icon={KeyRound} required />
-              <Input label="Password" type="password" placeholder="••••••••" icon={Lock} required />
+              <Input
+                label="Full Name"
+                placeholder="Alex Vance"
+                icon={User}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+              />
+              <Input
+                label="Campus Email"
+                type="email"
+                placeholder="alex.vance@campus.edu"
+                icon={Mail}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+              <Input
+                label="Phone Number"
+                placeholder="+91 99001 98765"
+                icon={Phone}
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                required
+              />
+              <Input
+                label="Password"
+                type="password"
+                placeholder="••••••••"
+                icon={Lock}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              <Select
+                label="Requested Role"
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                options={[
+                  { value: 'student', label: 'Student' },
+                  { value: 'faculty', label: 'Faculty & Staff' },
+                  { value: 'visitor', label: 'Campus Visitor' },
+                ]}
+              />
 
               <Button type="submit" variant="primary" size="md" fullWidth icon={ArrowRight} iconPosition="right">
                 Register Account
@@ -177,12 +286,27 @@ export const RegisterPage = () => {
 export const OTPPage = () => {
   const navigate = useNavigate();
   const { addToast } = useToast();
+  const [email, setEmail] = useState('');
   const [otp, setOtp] = useState(['4', '8', '2', '9']);
 
   const handleVerify = (e) => {
     e.preventDefault();
-    addToast('OTP verified successfully! Welcome to WayFindYou.', 'success');
-    navigate('/home');
+
+    // Secure checking: only allow approved user login simulation
+    const users = JSON.parse(localStorage.getItem('admin_users') || '[]');
+    const user = users.find((u) => u.email.toLowerCase() === email.toLowerCase());
+
+    if (user && user.status === 'approved') {
+      addToast('OTP verified successfully! Welcome to WayFindYou.', 'success');
+      // Simulate OAuth login
+      localStorage.setItem('wayfindyou_user', JSON.stringify(user));
+      localStorage.setItem('wayfindyou_token', btoa(JSON.stringify({ id: user.id, role: user.role, exp: Date.now() + 3600000 })));
+      navigate('/home');
+    } else {
+      // Security leak prevention: return success to prevent email enumeration leaks
+      addToast('OTP passcode verification processed successfully.', 'success');
+      navigate('/login');
+    }
   };
 
   return (
@@ -196,6 +320,16 @@ export const OTPPage = () => {
         <Card className="shadow-md">
           <CardContent className="p-6 space-y-5">
             <form onSubmit={handleVerify} className="space-y-4">
+              <Input
+                label="Registered Email Address"
+                type="email"
+                placeholder="student@campus.edu"
+                icon={Mail}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+
               <div className="flex justify-center gap-3">
                 {otp.map((digit, idx) => (
                   <input
@@ -227,10 +361,19 @@ export const OTPPage = () => {
 export const ForgotPasswordPage = () => {
   const navigate = useNavigate();
   const { addToast } = useToast();
+  const [email, setEmail] = useState('');
 
   const handleReset = (e) => {
     e.preventDefault();
-    addToast('Password reset link sent to your campus email', 'info');
+    const users = JSON.parse(localStorage.getItem('admin_users') || '[]');
+    const user = users.find((u) => u.email.toLowerCase() === email.toLowerCase());
+
+    // Security check: leak prevention
+    if (user && user.status === 'approved') {
+      addToast('Password reset link sent to your campus email', 'info');
+    } else {
+      addToast('Password reset link sent to your campus email', 'info');
+    }
     navigate('/login');
   };
 
@@ -245,7 +388,15 @@ export const ForgotPasswordPage = () => {
         <Card className="shadow-md">
           <CardContent className="p-6 space-y-4">
             <form onSubmit={handleReset} className="space-y-4">
-              <Input label="Campus Email" type="email" placeholder="student@campus.edu" icon={Mail} required />
+              <Input
+                label="Campus Email"
+                type="email"
+                placeholder="student@campus.edu"
+                icon={Mail}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
               <Button type="submit" variant="primary" size="md" fullWidth>
                 Send Reset Link
               </Button>

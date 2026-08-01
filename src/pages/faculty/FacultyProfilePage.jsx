@@ -15,7 +15,7 @@ import { useRole } from '../../context/RoleContext';
 export const FacultyProfilePage = () => {
   const navigate = useNavigate();
   const { addToast } = useToast();
-  const { switchRole } = useRole();
+  const { switchRole, logout } = useRole();
 
   const [profile, setProfile] = useState(INITIAL_FACULTY_PROFILE);
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -32,7 +32,7 @@ export const FacultyProfilePage = () => {
   };
 
   const handleLogout = () => {
-    switchRole('student');
+    logout();
     addToast('Logged out of Faculty Portal', 'info');
     navigate('/login');
   };

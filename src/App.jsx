@@ -67,6 +67,8 @@ import { AdminReportsPage } from './pages/admin/AdminReportsPage';
 import { AdminAuditLogsPage } from './pages/admin/AdminAuditLogsPage';
 import { AdminSystemSettingsPage } from './pages/admin/AdminSystemSettingsPage';
 import { AdminProfilePage } from './pages/admin/AdminProfilePage';
+import { AdminRouteGuard } from './components/admin/AdminRouteGuard';
+import { FacultyRouteGuard } from './components/faculty/FacultyRouteGuard';
 
 export function App() {
   return (
@@ -103,47 +105,47 @@ export function App() {
 
                 {/* Dedicated Faculty Module Protected Routes */}
                 <Route path="/faculty/login" element={<FacultyLoginPage />} />
-                <Route path="/faculty/dashboard" element={<FacultyDashboardPage />} />
-                <Route path="/faculty/timetable" element={<FacultyTimetablePage />} />
-                <Route path="/faculty/current-class" element={<FacultyCurrentClassPage />} />
-                <Route path="/faculty/map" element={<FacultyCampusMapPage />} />
-                <Route path="/faculty/substitution" element={<FacultySubstitutionPage />} />
-                <Route path="/faculty/notices" element={<FacultyNoticesPage />} />
-                <Route path="/faculty/events" element={<FacultyEventsPage />} />
-                <Route path="/faculty/notifications" element={<FacultyNotificationsPage />} />
-                <Route path="/faculty/profile" element={<FacultyProfilePage />} />
+                <Route path="/faculty/dashboard" element={<FacultyRouteGuard><FacultyDashboardPage /></FacultyRouteGuard>} />
+                <Route path="/faculty/timetable" element={<FacultyRouteGuard><FacultyTimetablePage /></FacultyRouteGuard>} />
+                <Route path="/faculty/current-class" element={<FacultyRouteGuard><FacultyCurrentClassPage /></FacultyRouteGuard>} />
+                <Route path="/faculty/map" element={<FacultyRouteGuard><FacultyCampusMapPage /></FacultyRouteGuard>} />
+                <Route path="/faculty/substitution" element={<FacultyRouteGuard><FacultySubstitutionPage /></FacultyRouteGuard>} />
+                <Route path="/faculty/notices" element={<FacultyRouteGuard><FacultyNoticesPage /></FacultyRouteGuard>} />
+                <Route path="/faculty/events" element={<FacultyRouteGuard><FacultyEventsPage /></FacultyRouteGuard>} />
+                <Route path="/faculty/notifications" element={<FacultyRouteGuard><FacultyNotificationsPage /></FacultyRouteGuard>} />
+                <Route path="/faculty/profile" element={<FacultyRouteGuard><FacultyProfilePage /></FacultyRouteGuard>} />
 
                 {/* 1-to-1 Admin Portal Dedicated Pages */}
                 <Route path="/admin/login" element={<AdminLoginPage />} />
-                <Route path="/admin" element={<AdminDashboardPage />} />
-                <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
-                <Route path="/admin/users" element={<AdminUserManagementPage />} />
-                <Route path="/admin/departments" element={<AdminDepartmentManagementPage />} />
-                <Route path="/admin/faculty" element={<AdminFacultyManagementPage />} />
-                <Route path="/admin/students" element={<AdminStudentManagementPage />} />
-                <Route path="/admin/buildings" element={<AdminBuildingManagementPage />} />
-                <Route path="/admin/rooms" element={<AdminRoomManagementPage />} />
-                <Route path="/admin/subjects" element={<AdminSubjectManagementPage />} />
-                <Route path="/admin/classes" element={<AdminClassSectionPage />} />
-                <Route path="/admin/faculty-allocation" element={<AdminFacultyAllocationPage />} />
-                <Route path="/admin/class-allocation" element={<AdminClassroomAllocationPage />} />
-                <Route path="/admin/timetable" element={<AdminTimetableManagementPage />} />
-                <Route path="/admin/substitution" element={<AdminFacultySubstitutionPage />} />
-                <Route path="/admin/facilities" element={<AdminFacilityManagementPage />} />
-                <Route path="/admin/map" element={<AdminCampusMapPage />} />
-                <Route path="/admin/routes" element={<AdminCampusMapPage />} />
-                <Route path="/admin/events" element={<AdminEventsManagementPage />} />
-                <Route path="/admin/notices" element={<AdminNoticesManagementPage />} />
-                <Route path="/admin/visitors" element={<AdminVisitorManagementPage />} />
-                <Route path="/admin/notifications" element={<AdminNotificationsPage />} />
-                <Route path="/admin/complaints" element={<AdminComplaintsMonitoringPage />} />
-                <Route path="/admin/issues" element={<AdminComplaintsMonitoringPage />} />
-                <Route path="/admin/heatmap" element={<AdminHeatmapPage />} />
-                <Route path="/admin/analytics" element={<AdminAnalyticsPage />} />
-                <Route path="/admin/reports" element={<AdminReportsPage />} />
-                <Route path="/admin/audit-logs" element={<AdminAuditLogsPage />} />
-                <Route path="/admin/settings" element={<AdminSystemSettingsPage />} />
-                <Route path="/admin/profile" element={<AdminProfilePage />} />
+                <Route path="/admin" element={<AdminRouteGuard><AdminDashboardPage /></AdminRouteGuard>} />
+                <Route path="/admin/dashboard" element={<AdminRouteGuard><AdminDashboardPage /></AdminRouteGuard>} />
+                <Route path="/admin/users" element={<AdminRouteGuard><AdminUserManagementPage /></AdminRouteGuard>} />
+                <Route path="/admin/departments" element={<AdminRouteGuard><AdminDepartmentManagementPage /></AdminRouteGuard>} />
+                <Route path="/admin/faculty" element={<AdminRouteGuard><AdminFacultyManagementPage /></AdminRouteGuard>} />
+                <Route path="/admin/students" element={<AdminRouteGuard><AdminStudentManagementPage /></AdminRouteGuard>} />
+                <Route path="/admin/buildings" element={<AdminRouteGuard><AdminBuildingManagementPage /></AdminRouteGuard>} />
+                <Route path="/admin/rooms" element={<AdminRouteGuard><AdminRoomManagementPage /></AdminRouteGuard>} />
+                <Route path="/admin/subjects" element={<AdminRouteGuard><AdminSubjectManagementPage /></AdminRouteGuard>} />
+                <Route path="/admin/classes" element={<AdminRouteGuard><AdminClassSectionPage /></AdminRouteGuard>} />
+                <Route path="/admin/faculty-allocation" element={<AdminRouteGuard><AdminFacultyAllocationPage /></AdminRouteGuard>} />
+                <Route path="/admin/class-allocation" element={<AdminRouteGuard><AdminClassroomAllocationPage /></AdminRouteGuard>} />
+                <Route path="/admin/timetable" element={<AdminRouteGuard><AdminTimetableManagementPage /></AdminRouteGuard>} />
+                <Route path="/admin/substitution" element={<AdminRouteGuard><AdminFacultySubstitutionPage /></AdminRouteGuard>} />
+                <Route path="/admin/facilities" element={<AdminRouteGuard><AdminFacilityManagementPage /></AdminRouteGuard>} />
+                <Route path="/admin/map" element={<AdminRouteGuard><AdminCampusMapPage /></AdminRouteGuard>} />
+                <Route path="/admin/routes" element={<AdminRouteGuard><AdminCampusMapPage /></AdminRouteGuard>} />
+                <Route path="/admin/events" element={<AdminRouteGuard><AdminEventsManagementPage /></AdminRouteGuard>} />
+                <Route path="/admin/notices" element={<AdminRouteGuard><AdminNoticesManagementPage /></AdminRouteGuard>} />
+                <Route path="/admin/visitors" element={<AdminRouteGuard><AdminVisitorManagementPage /></AdminRouteGuard>} />
+                <Route path="/admin/notifications" element={<AdminRouteGuard><AdminNotificationsPage /></AdminRouteGuard>} />
+                <Route path="/admin/complaints" element={<AdminRouteGuard><AdminComplaintsMonitoringPage /></AdminRouteGuard>} />
+                <Route path="/admin/issues" element={<AdminRouteGuard><AdminComplaintsMonitoringPage /></AdminRouteGuard>} />
+                <Route path="/admin/heatmap" element={<AdminRouteGuard><AdminHeatmapPage /></AdminRouteGuard>} />
+                <Route path="/admin/analytics" element={<AdminRouteGuard><AdminAnalyticsPage /></AdminRouteGuard>} />
+                <Route path="/admin/reports" element={<AdminRouteGuard><AdminReportsPage /></AdminRouteGuard>} />
+                <Route path="/admin/audit-logs" element={<AdminRouteGuard><AdminAuditLogsPage /></AdminRouteGuard>} />
+                <Route path="/admin/settings" element={<AdminRouteGuard><AdminSystemSettingsPage /></AdminRouteGuard>} />
+                <Route path="/admin/profile" element={<AdminRouteGuard><AdminProfilePage /></AdminRouteGuard>} />
 
                 {/* Catch-all Fallback Redirect */}
                 <Route path="*" element={<Navigate to="/" replace />} />

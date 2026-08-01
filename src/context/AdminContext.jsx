@@ -34,7 +34,17 @@ const getInitialState = (key, fallback) => {
 };
 
 export const AdminProvider = ({ children }) => {
-  const [users, setUsers] = useState(() => getInitialState('users', INITIAL_ADMIN_USERS));
+  const [users, setUsers] = useState(() => {
+    const saved = localStorage.getItem('admin_users');
+    if (saved) return JSON.parse(saved);
+    return INITIAL_ADMIN_USERS.map((user) => ({
+      ...user,
+      status: user.status === 'Active' ? 'approved' : 'pending',
+      approved_by: 'system',
+      approved_at: new Date().toISOString(),
+      rejection_reason: null,
+    }));
+  });
   const [departments, setDepartments] = useState(() => getInitialState('departments', INITIAL_DEPARTMENTS));
   const [students, setStudents] = useState(() => getInitialState('students', INITIAL_STUDENTS));
   const [faculty, setFaculty] = useState(() => getInitialState('faculty', ALL_FACULTY_MEMBERS));
@@ -76,6 +86,25 @@ export const AdminProvider = ({ children }) => {
   useEffect(() => { localStorage.setItem('admin_auditLogs', JSON.stringify(auditLogs)); }, [auditLogs]);
   useEffect(() => { localStorage.setItem('admin_settings', JSON.stringify(settings)); }, [settings]);
 
+  // Hook up mock db initialization and storage change listener
+  useEffect(() => {
+    const initDb = async () => {
+      const { initializeMockDatabase } = await import('../services/authService');
+      const initialized = await initializeMockDatabase();
+      setUsers(initialized);
+    };
+    initDb();
+
+    const handleStorageChange = () => {
+      const latestUsers = localStorage.getItem('admin_users');
+      if (latestUsers) {
+        setUsers(JSON.parse(latestUsers));
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
   // Audit Logging Helper
   const logAuditAction = (action, moduleName, prevVal, newVal) => {
     const newLog = {
@@ -91,11 +120,14 @@ export const AdminProvider = ({ children }) => {
   };
 
   // User Management
-  const addUser = (userData) => {
+  const addUser = (userData, creatorAdminId = 'usr_adm_1') => {
     const newUser = {
       id: `usr_${userData.role.substring(0, 3)}_${Math.floor(Math.random() * 900 + 100)}`,
       ...userData,
-      status: 'Active',
+      status: 'approved',
+      approved_by: creatorAdminId,
+      approved_at: new Date().toISOString(),
+      rejection_reason: null,
       created_at: new Date().toISOString().split('T')[0]
     };
     setUsers((prev) => [newUser, ...prev]);
@@ -121,7 +153,7 @@ export const AdminProvider = ({ children }) => {
         department: userData.department,
         year: userData.year || 'III',
         section: userData.section || 'A',
-        phone: userData.phone || '+1 (555) 000-0000',
+        phone: userData.phone || '+91 99001 98765',
         status: 'Active'
       };
       setStudents((prev) => [newStudent, ...prev]);
@@ -131,11 +163,47 @@ export const AdminProvider = ({ children }) => {
     return newUser;
   };
 
+  const approveUser = (userId, adminId = 'usr_adm_1') => {
+    setUsers((prev) =>
+      prev.map((u) => {
+        if (u.id === userId) {
+          logAuditAction('User Approved', 'User Management', `Status: ${u.status}`, 'Status: approved');
+          return {
+            ...u,
+            status: 'approved',
+            approved_by: adminId,
+            approved_at: new Date().toISOString(),
+            rejection_reason: null
+          };
+        }
+        return u;
+      })
+    );
+  };
+
+  const rejectUser = (userId, reason = '') => {
+    setUsers((prev) =>
+      prev.map((u) => {
+        if (u.id === userId) {
+          logAuditAction('User Rejected', 'User Management', `Status: ${u.status}`, `Status: rejected (${reason})`);
+          return {
+            ...u,
+            status: 'rejected',
+            rejection_reason: reason,
+            approved_by: null,
+            approved_at: null
+          };
+        }
+        return u;
+      })
+    );
+  };
+
   const toggleUserStatus = (userId) => {
     setUsers((prev) =>
       prev.map((u) => {
         if (u.id === userId) {
-          const nextStatus = u.status === 'Active' ? 'Deactivated' : 'Active';
+          const nextStatus = u.status === 'Active' || u.status === 'approved' ? 'Deactivated' : 'Active';
           logAuditAction('User Status Changed', 'User Management', `Status: ${u.status}`, `Status: ${nextStatus}`);
           return { ...u, status: nextStatus };
         }
@@ -387,6 +455,8 @@ export const AdminProvider = ({ children }) => {
         settings,
         metrics,
         addUser,
+        approveUser,
+        rejectUser,
         toggleUserStatus,
         addDepartment,
         addBuilding,

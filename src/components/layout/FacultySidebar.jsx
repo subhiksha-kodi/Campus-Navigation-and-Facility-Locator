@@ -19,7 +19,7 @@ import { useRole } from '../../context/RoleContext';
 import { INITIAL_FACULTY_PROFILE } from '../../services/facultyData';
 
 export const FacultySidebar = ({ isOpen, onClose }) => {
-  const { switchRole } = useRole();
+  const { switchRole, logout } = useRole();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -36,7 +36,7 @@ export const FacultySidebar = ({ isOpen, onClose }) => {
   ];
 
   const handleLogout = () => {
-    switchRole('student');
+    logout();
     navigate('/login');
   };
 
