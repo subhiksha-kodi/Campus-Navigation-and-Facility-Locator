@@ -9,9 +9,9 @@
 
 # 🏫 WayFindYou — Campus Navigation & Facility Locator
 
-### *Smart Indoor & Outdoor Navigation for Sri Shakthi Institute of Engineering and Technology*
+### *Smart Indoor & Outdoor Navigation for Bannari Amman Institute of Technology*
 
-> **Developed by Team Velmora** | Sri Shakthi Institute of Engineering and Technology, Coimbatore
+> **Developed by Team Velmora** | Bannari Amman Institute of Technology, Sathyamangalam
 
 [![GitHub Repo](https://img.shields.io/badge/GitHub-View_Repository-181717?style=flat-square&logo=github)](https://github.com/subhiksha-kodi/Campus-Navigation-and-Facility-Locator)
 
@@ -40,7 +40,7 @@
 
 ## 🌟 Project Overview
 
-**WayFindYou** is a full-stack, feature-rich smart campus navigation and facility management web application designed for **Sri Shakthi Institute of Engineering and Technology, Coimbatore**. It enables students, faculty, and administrators to:
+**WayFindYou** is a full-stack, feature-rich smart campus navigation and facility management web application designed for **Bannari Amman Institute of Technology, Sathyamangalam**. It enables students, faculty, and administrators to:
 
 - 🗺️ **Navigate the campus** using real-time interactive outdoor maps (OpenStreetMap + Leaflet.js)
 - 🏛️ **Explore building interiors** in immersive **3D augmented-reality-style floor plans** (Three.js)
@@ -326,9 +326,9 @@ The application supports **three user roles** with distinct access privileges:
 
 | Role | Username | Password |
 |------|----------|---------|
-| Admin | `admin@ssiet.ac.in` | `admin123` |
-| Student | `student@ssiet.ac.in` | `student123` |
-| Faculty | `faculty@ssiet.ac.in` | `faculty123` |
+| Admin | `admin@bitsathy.ac.in` | `admin123` |
+| Student | `student@bitsathy.ac.in` | `student123` |
+| Faculty | `faculty@bitsathy.ac.in` | `faculty123` |
 
 ---
 
@@ -421,7 +421,7 @@ recorder.onstop = () => {
 
 ## 👥 Team Velmora
 
-**Team Name:** Velmora | **Institution:** Sri Shakthi Institute of Engineering and Technology, Coimbatore
+**Team Name:** Velmora | **Institution:** Bannari Amman Institute of Technology, Sathyamangalam
 
 | Role | Name | Modules |
 |------|------|---------|
@@ -452,7 +452,7 @@ This project is licensed under the **MIT License**.
 <div align="center">
 
 **Made with ❤️ by Team Velmora**
-Sri Shakthi Institute of Engineering and Technology, Coimbatore
+Bannari Amman Institute of Technology, Sathyamangalam
 
 ⭐ *Star this repository if you found it helpful!*
 

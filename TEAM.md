@@ -2,7 +2,7 @@
 
 > **Team Name:** Velmora  
 > **Project:** Campus Navigation and Facility Locator — *WayFindYou*  
-> **Institution:** Sri Shakthi Institute of Engineering and Technology, Coimbatore  
+> **Institution:** Bannari Amman Institute of Technology, Sathyamangalam  
 > **Department:** Computer Science and Engineering  
 > **Academic Year:** 2024–2025  
 
@@ -72,4 +72,4 @@ For queries regarding this project, please raise an issue on the [GitHub Reposit
 
 ---
 
-*Made with ❤️ by Team Velmora — Sri Shakthi Institute of Engineering and Technology*
+*Made with ❤️ by Team Velmora — Bannari Amman Institute of Technology*
