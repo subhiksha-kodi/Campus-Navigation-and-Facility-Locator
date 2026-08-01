@@ -1,0 +1,3 @@
+{"type":"FeatureCollection", "features": [
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[77.2760700995433,11.49446887095252],[77.27694130625511,11.49446270077212],[77.276808145464,11.49688425286347],[77.27594769114012,11.49685636205562],[77.2760700995433,11.49446887095252]]]},"properties":{"name":"IB","styleUrl":"#inline1","fill-opacity":0,"stroke-opacity":1,"stroke":"#ff0000","stroke-width":2}}
+]}

@@ -1,0 +1,3 @@
+{"type":"FeatureCollection", "features": [
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[77.27697359793684,11.49281153423835],[77.27821940820128,11.49286820161846],[77.27819054957862,11.49323541497379],[77.27695852032774,11.49322722574076],[77.27697359793684,11.49281153423835]]]},"properties":{"name":"tennis court","styleUrl":"#inline","fill-opacity":0,"stroke-opacity":1,"stroke":"#ff0000","stroke-width":2}}
+]}

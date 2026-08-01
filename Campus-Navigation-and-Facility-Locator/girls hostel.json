@@ -1,0 +1,3 @@
+{"type":"FeatureCollection", "features": [
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[77.27463031748877,11.49214119148674],[77.27462987307307,11.49214452363885],[77.27700098842175,11.49195511241478],[77.27683498890131,11.49362229788609],[77.27447814503437,11.4935801299553],[77.27463031748877,11.49214119148674]]]},"properties":{"name":"girls hostel","styleUrl":"#inline1","fill-opacity":0,"stroke-opacity":1,"stroke":"#ff0000","stroke-width":2}}
+]}

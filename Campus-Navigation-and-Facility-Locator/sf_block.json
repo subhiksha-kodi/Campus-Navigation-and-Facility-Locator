@@ -1,0 +1,3 @@
+{"type":"FeatureCollection", "features": [
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[77.2796841456958,11.49620802418108],[77.27964374632518,11.49680575417755],[77.27819042039772,11.49678608667688],[77.27822466633684,11.4961545498046],[77.2796841456958,11.49620802418108]]]},"properties":{"name":"SF","styleUrl":"#inline","fill-opacity":0,"stroke-opacity":1,"stroke":"#ff0000","stroke-width":2}}
+]}

@@ -1,0 +1,19 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [77.27747586990013, 11.49685820647116, 0]
+      },
+      "properties": {
+        "name": "AS Block",
+        "code": "AS-BLOCK",
+        "type": "Academic",
+        "description": "Applied Sciences & Core Engineering Block",
+        "routePath": "/as-block"
+      }
+    }
+  ]
+}

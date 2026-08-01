@@ -15,22 +15,24 @@ import {
   Settings,
   X,
   LayoutDashboard,
-  Shield,
-  HelpCircle
+  Award,
+  Coffee,
+  ListOrdered,
+  Star
 } from 'lucide-react';
 import { useRole } from '../../context/RoleContext';
-import { Badge } from '../ui/Badge';
+import { useStudent } from '../../context/StudentContext';
 
 export const Sidebar = ({ isOpen, onClose }) => {
-  const { activeRole, user } = useRole();
+  const { activeRole } = useRole();
+  const { student } = useStudent();
   const location = useLocation();
 
-  // Navigation Items defined with role permissions
   const navSections = [
     {
       title: 'Overview',
       items: [
-        { name: 'Dashboard', path: '/home', icon: LayoutDashboard, roles: ['student', 'faculty', 'visitor', 'security', 'admin'] }
+        { name: 'Student Dashboard', path: '/student/dashboard', icon: LayoutDashboard, roles: ['student', 'faculty', 'visitor', 'security', 'admin'] }
       ]
     },
     {
@@ -43,31 +45,35 @@ export const Sidebar = ({ isOpen, onClose }) => {
       ]
     },
     {
-      title: 'Campus Life',
+      title: 'Academic & Campus Life',
       items: [
-        { name: 'Timetable', path: '/timetable', icon: Calendar, roles: ['student', 'faculty'] },
-        { name: 'Notices & Updates', path: '/notices', icon: Bell, roles: ['student', 'faculty', 'visitor', 'security', 'admin'] },
+        { name: 'Timetable', path: '/student/timetable', icon: Calendar, roles: ['student', 'faculty'] },
+        { name: 'Attendance & CGPA', path: '/student/attendance', icon: Award, roles: ['student'] },
+        { name: 'Smart Cafeteria', path: '/student/cafeteria', icon: Coffee, roles: ['student', 'faculty', 'visitor'] },
+        { name: 'Notices & Updates', path: '/student/notices', icon: Bell, roles: ['student', 'faculty', 'visitor', 'security', 'admin'] },
+        { name: 'Events & Workshops', path: '/student/events', icon: Calendar, roles: ['student', 'faculty', 'visitor'] },
       ]
     },
     {
-      title: 'Services & Operations',
+      title: 'Services & Feedback',
       items: [
-        { name: 'Complaints & Issues', path: '/complaints', icon: MessageSquare, roles: ['student', 'faculty', 'security', 'admin'] },
-        { name: 'Visitor Passes', path: '/visitors', icon: Users, roles: ['visitor', 'security', 'admin'] },
-        { name: 'Admin Operations', path: '/admin', icon: Shield, roles: ['admin'] },
+        { name: 'Report Complaint', path: '/student/complaints', icon: MessageSquare, roles: ['student', 'faculty', 'security', 'admin'] },
+        { name: 'Complaint History', path: '/student/complaints-history', icon: ListOrdered, roles: ['student', 'faculty'] },
+        { name: 'Facility Feedback', path: '/student/feedback', icon: Star, roles: ['student', 'faculty', 'visitor'] },
       ]
     },
     {
-      title: 'Safety',
+      title: 'Safety & Emergency',
       items: [
-        { name: 'Emergency / SOS', path: '/emergency', icon: ShieldAlert, badge: '24/7', roles: ['student', 'faculty', 'visitor', 'security', 'admin'] },
+        { name: 'Emergency SOS', path: '/student/emergency', icon: ShieldAlert, badge: '24/7', roles: ['student', 'faculty', 'visitor', 'security', 'admin'] },
       ]
     },
     {
-      title: 'Account',
+      title: 'Account & Settings',
       items: [
-        { name: 'My Profile', path: '/profile', icon: User, roles: ['student', 'faculty', 'visitor', 'security', 'admin'] },
-        { name: 'Settings', path: '/settings', icon: Settings, roles: ['student', 'faculty', 'visitor', 'security', 'admin'] },
+        { name: 'My Profile', path: '/student/profile', icon: User, roles: ['student', 'faculty', 'visitor', 'security', 'admin'] },
+        { name: 'Notifications Feed', path: '/student/notifications', icon: Bell, roles: ['student', 'faculty', 'visitor', 'security', 'admin'] },
+        { name: 'Settings', path: '/student/settings', icon: Settings, roles: ['student', 'faculty', 'visitor', 'security', 'admin'] },
       ]
     }
   ];
@@ -90,7 +96,7 @@ export const Sidebar = ({ isOpen, onClose }) => {
       >
         {/* Sidebar Header / Brand Logo */}
         <div className="h-16 px-5 flex items-center justify-between border-b border-slate-800 shrink-0">
-          <NavLink to="/home" className="flex items-center gap-2.5 group">
+          <NavLink to="/student/dashboard" className="flex items-center gap-2.5 group">
             <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold shadow-sm group-hover:bg-blue-500 transition-colors">
               <Compass className="w-5 h-5 stroke-[2.5]" />
             </div>
@@ -98,7 +104,7 @@ export const Sidebar = ({ isOpen, onClose }) => {
               <span className="text-base font-bold text-white tracking-tight leading-tight">
                 WayFindYou
               </span>
-              <span className="text-[10px] text-slate-400 font-medium">Campus Portal</span>
+              <span className="text-[10px] text-slate-400 font-medium">Student Module</span>
             </div>
           </NavLink>
 
@@ -112,14 +118,12 @@ export const Sidebar = ({ isOpen, onClose }) => {
 
         {/* Current Active User Profile Pill */}
         <div className="p-3.5 mx-3 mt-3 rounded-xl bg-slate-800/80 border border-slate-750 flex items-center gap-3">
-          <img
-            src={user.avatar}
-            alt={user.name}
-            className="w-8 h-8 rounded-full object-cover border border-slate-600"
-          />
+          <div className="w-8 h-8 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center border border-slate-600 shrink-0">
+            {student.name.charAt(0)}
+          </div>
           <div className="flex-1 min-w-0">
-            <h5 className="text-xs font-semibold text-white truncate">{user.name}</h5>
-            <p className="text-[10px] text-slate-400 truncate">{user.roleLabel}</p>
+            <h5 className="text-xs font-semibold text-white truncate">{student.name}</h5>
+            <p className="text-[10px] text-slate-400 truncate">Dept: {student.department} • {student.id}</p>
           </div>
           <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 shrink-0" title="Online" />
         </div>
@@ -172,10 +176,10 @@ export const Sidebar = ({ isOpen, onClose }) => {
 
         {/* Footer info */}
         <div className="p-3 border-t border-slate-800 text-[11px] text-slate-400 text-center flex items-center justify-between">
-          <span>WayFindYou v1.0</span>
+          <span>WayFindYou Student</span>
           <span className="text-emerald-400 flex items-center gap-1">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-            System Normal
+            Online
           </span>
         </div>
       </aside>

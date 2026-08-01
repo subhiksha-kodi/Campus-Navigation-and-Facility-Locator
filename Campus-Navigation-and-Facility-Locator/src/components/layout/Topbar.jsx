@@ -1,19 +1,28 @@
 import React, { useState } from 'react';
-import { NavLink } from 'react-router-dom';
-import { Menu, Search, Bell, Shield, UserCheck, ChevronDown, Compass, LogOut, Check } from 'lucide-react';
-import { useRole, DEMO_USERS } from '../../context/RoleContext';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { Menu, Search, Bell, UserCheck, ChevronDown, Compass, LogOut, Check } from 'lucide-react';
+import { useRole, DEMO_ROLES } from '../../context/RoleContext';
+import { useStudent } from '../../context/StudentContext';
 import { Dropdown } from '../ui/Dropdown';
 import { Badge } from '../ui/Badge';
+import { SearchBar } from '../ui/SearchBar';
 
 export const Topbar = ({ onMenuClick }) => {
-  const { activeRole, switchRole, user, allRoles } = useRole();
+  const navigate = useNavigate();
+  const { activeRole, switchRole, logout } = useRole();
+  const { student, notifications, markAllAsRead } = useStudent();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
 
-  const notifications = [
-    { id: 1, title: 'Central Library Closed Today', time: '10 mins ago', unread: true },
-    { id: 2, title: 'Bus Route #4 Schedule Change', time: '1 hour ago', unread: true },
-    { id: 3, title: 'Classroom CS303 Projector Repaired', time: '3 hours ago', unread: false },
-  ];
+  const unreadCount = notifications.filter((n) => !n.read).length;
+
+  const handleGlobalSearch = (query) => {
+    if (!query) return;
+    if (query.toLowerCase().includes('cs') || query.toLowerCase().includes('room') || query.toLowerCase().includes('lab')) {
+      navigate(`/classrooms?q=${encodeURIComponent(query)}`);
+    } else {
+      navigate(`/facilities?q=${encodeURIComponent(query)}`);
+    }
+  };
 
   return (
     <header className="h-16 bg-white border-b border-slate-200 px-4 sm:px-6 flex items-center justify-between sticky top-0 z-30 shadow-subtle">
@@ -28,7 +37,7 @@ export const Topbar = ({ onMenuClick }) => {
         </button>
 
         {/* Compact Logo for Topbar */}
-        <NavLink to="/home" className="flex items-center gap-2 lg:hidden">
+        <NavLink to="/student/dashboard" className="flex items-center gap-2 lg:hidden">
           <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold">
             <Compass className="w-4 h-4" />
           </div>
@@ -36,18 +45,14 @@ export const Topbar = ({ onMenuClick }) => {
         </NavLink>
       </div>
 
-      {/* Center: Quick Search Bar for Large Screens */}
+      {/* Center: Search Bar for Medium/Large Screens */}
       <div className="hidden md:flex items-center flex-1 max-w-md mx-8">
-        <div className="relative w-full">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-            <Search className="w-4 h-4" />
-          </div>
-          <input
-            type="text"
-            placeholder="Quick search classrooms, buildings, facilities..."
-            className="w-full pl-9 pr-4 py-1.5 text-xs bg-slate-100/80 border border-slate-200 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition-all h-9"
-          />
-        </div>
+        <SearchBar
+          placeholder="Search rooms, facilities, notices, events..."
+          onSearch={handleGlobalSearch}
+          size="sm"
+          suggestions={['Room CS302', 'Central Library', 'Main Cafeteria', 'Medical Centre', 'Lab 3']}
+        />
       </div>
 
       {/* Right: Role Switcher, Notifications, User Avatar */}
@@ -55,7 +60,7 @@ export const Topbar = ({ onMenuClick }) => {
         {/* Role Switcher Pill */}
         <Dropdown
           trigger={
-            <button className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 transition-colors text-xs font-medium text-slate-700">
+            <button className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 transition-colors text-xs font-medium text-slate-700">
               <UserCheck className="w-3.5 h-3.5 text-blue-600" />
               <span>Role: <strong className="text-slate-900 capitalize">{activeRole}</strong></span>
               <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
@@ -63,12 +68,11 @@ export const Topbar = ({ onMenuClick }) => {
           }
         >
           <div className="p-2 border-b border-slate-100">
-            <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Switch View Persona</p>
-            <p className="text-[11px] text-slate-500">Test WayFindYou as different users</p>
+            <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Switch Portal Role</p>
           </div>
           <div className="py-1">
-            {allRoles.map((r) => {
-              const info = DEMO_USERS[r];
+            {Object.keys(DEMO_ROLES).map((r) => {
+              const info = DEMO_ROLES[r];
               const isCurrent = activeRole === r;
               return (
                 <button
@@ -78,10 +82,7 @@ export const Topbar = ({ onMenuClick }) => {
                     isCurrent ? 'font-semibold text-blue-600 bg-blue-50/50' : 'text-slate-700'
                   }`}
                 >
-                  <div className="flex flex-col">
-                    <span>{info.roleLabel}</span>
-                    <span className="text-[10px] text-slate-400 font-normal">{info.name}</span>
-                  </div>
+                  <span>{info.roleLabel}</span>
                   {isCurrent && <Check className="w-4 h-4 text-blue-600" />}
                 </button>
               );
@@ -97,18 +98,20 @@ export const Topbar = ({ onMenuClick }) => {
             aria-label="Notifications"
           >
             <Bell className="w-5 h-5" />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white"></span>
+            {unreadCount > 0 && (
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white" />
+            )}
           </button>
 
           {/* Notifications Dropdown Panel */}
           {notificationsOpen && (
             <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl border border-slate-200 shadow-dropdown z-50 py-2 animate-in fade-in slide-in-from-top-1">
               <div className="px-4 py-2 border-b border-slate-100 flex items-center justify-between">
-                <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Campus Alerts</h4>
-                <Badge variant="info" size="sm">3 New</Badge>
+                <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Student Alerts</h4>
+                <Badge variant="info" size="sm">{unreadCount} Unread</Badge>
               </div>
               <div className="divide-y divide-slate-100 max-h-64 overflow-y-auto">
-                {notifications.map((n) => (
+                {notifications.slice(0, 5).map((n) => (
                   <div key={n.id} className="p-3 hover:bg-slate-50 transition-colors">
                     <h5 className="text-xs font-semibold text-slate-800">{n.title}</h5>
                     <p className="text-[10px] text-slate-400 mt-0.5">{n.time}</p>
@@ -117,11 +120,11 @@ export const Topbar = ({ onMenuClick }) => {
               </div>
               <div className="px-4 py-2 border-t border-slate-100 text-center">
                 <NavLink
-                  to="/notices"
+                  to="/student/notifications"
                   onClick={() => setNotificationsOpen(false)}
                   className="text-xs font-medium text-blue-600 hover:text-blue-700"
                 >
-                  View All Campus Notices →
+                  View All Notifications Feed →
                 </NavLink>
               </div>
             </div>
@@ -132,31 +135,35 @@ export const Topbar = ({ onMenuClick }) => {
         <Dropdown
           trigger={
             <button className="flex items-center gap-2 p-1 rounded-lg hover:bg-slate-100 transition-colors">
-              <img
-                src={user.avatar}
-                alt={user.name}
-                className="w-8 h-8 rounded-full object-cover border border-slate-200"
-              />
+              <div className="w-8 h-8 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center border border-slate-200">
+                {student.name.charAt(0)}
+              </div>
             </button>
           }
         >
           <div className="p-3 border-b border-slate-100">
-            <h5 className="text-xs font-semibold text-slate-900">{user.name}</h5>
-            <p className="text-[10px] text-slate-500">{user.email}</p>
+            <h5 className="text-xs font-semibold text-slate-900">{student.name}</h5>
+            <p className="text-[10px] text-slate-500">{student.email}</p>
             <div className="mt-1">
-              <Badge variant="info" size="sm">{user.roleLabel}</Badge>
+              <Badge variant="info" size="sm">{student.department} • {student.id}</Badge>
             </div>
           </div>
           <div className="py-1">
-            <NavLink to="/profile" className="block px-4 py-2 text-xs text-slate-700 hover:bg-slate-50">
-              My Profile
+            <NavLink to="/student/profile" className="block px-4 py-2 text-xs text-slate-700 hover:bg-slate-50">
+              Student Profile
             </NavLink>
-            <NavLink to="/settings" className="block px-4 py-2 text-xs text-slate-700 hover:bg-slate-50">
-              Settings & Accessibility
+            <NavLink to="/student/settings" className="block px-4 py-2 text-xs text-slate-700 hover:bg-slate-50">
+              Settings & Preferences
             </NavLink>
-            <NavLink to="/" className="block px-4 py-2 text-xs text-red-600 hover:bg-red-50 font-medium">
+            <button
+              onClick={() => {
+                logout();
+                navigate('/student/login');
+              }}
+              className="w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 font-medium"
+            >
               Sign Out
-            </NavLink>
+            </button>
           </div>
         </Dropdown>
       </div>

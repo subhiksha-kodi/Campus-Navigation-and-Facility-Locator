@@ -1,111 +1,30 @@
 import React, { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
-  Printer,
   CreditCard,
   HeartPulse,
   Car,
-  Wifi,
   Accessibility,
-  Bus,
-  Droplet,
-  Search,
-  Navigation,
-  Clock,
+  Building2,
+  GraduationCap,
+  Home,
+  Trees,
+  Trophy,
+  Utensils,
+  Zap,
+  Wrench,
+  Sparkles,
   MapPin,
-  CheckCircle2,
-  Building2
+  Clock
 } from 'lucide-react';
 import { AppLayout } from '../components/layout/AppLayout';
 import { PageHeader } from '../components/layout/PageHeader';
 import { SearchBar } from '../components/ui/SearchBar';
 import { FacilityCard } from '../components/navigation/FacilityCard';
-import { Badge } from '../components/ui/Badge';
-import { Button } from '../components/ui/Button';
 import { useToast } from '../context/ToastContext';
+import { CAMPUS_LOCATIONS } from '../data/campusLocations';
 
-export const FACILITY_ITEMS = [
-  {
-    id: 1,
-    name: 'High-Speed Student Printing Kiosk',
-    category: 'Printer',
-    locationName: 'Central Library 1st Floor',
-    status: 'Open',
-    walkTime: '2 min',
-    hours: '08:00 AM - 08:00 PM',
-    icon: Printer
-  },
-  {
-    id: 2,
-    name: 'Campus ATM (HDFC Bank)',
-    category: 'ATM',
-    locationName: 'Student Centre Plaza',
-    status: 'Available',
-    walkTime: '3 min',
-    hours: '24 Hours',
-    icon: CreditCard
-  },
-  {
-    id: 3,
-    name: 'Emergency Medical Clinic',
-    category: 'Medical',
-    locationName: 'Health & Wellness Wing',
-    status: 'Open 24/7',
-    walkTime: '4 min',
-    hours: '24 Hours Emergency Care',
-    icon: HeartPulse
-  },
-  {
-    id: 4,
-    name: 'Main Parking Lot B (Two & Four Wheelers)',
-    category: 'Parking',
-    locationName: 'North Entrance Gate',
-    status: '42 Slots Open',
-    walkTime: '5 min',
-    hours: 'Open 24/7',
-    icon: Car
-  },
-  {
-    id: 5,
-    name: 'Campus Wi-Fi Gigabit Hotspot',
-    category: 'Wi-Fi',
-    locationName: 'Academic Quad Lawn',
-    status: 'Active (500 Mbps)',
-    walkTime: '1 min',
-    hours: 'Always Active',
-    icon: Wifi
-  },
-  {
-    id: 6,
-    name: 'Elevator & Wheelchair Lift B',
-    category: 'Lift',
-    locationName: 'Computer Science Block East',
-    status: 'Operational',
-    walkTime: '2 min',
-    hours: 'All Day',
-    icon: Accessibility
-  },
-  {
-    id: 7,
-    name: 'Campus Shuttle Bus Stop #1',
-    category: 'Bus Stop',
-    locationName: 'Main Campus Gate',
-    status: 'Next Shuttle in 5 min',
-    walkTime: '1 min',
-    hours: '07:00 AM - 09:00 PM',
-    icon: Bus
-  },
-  {
-    id: 8,
-    name: 'RO Drinking Water Refill Station',
-    category: 'Drinking Water',
-    locationName: 'Academic Block A (Floor 2)',
-    status: 'Chilled Water Available',
-    walkTime: '3 min',
-    hours: 'Always Available',
-    icon: Droplet
-  }
-];
+export const FACILITY_ITEMS = CAMPUS_LOCATIONS;
 
 export const FacilityLocatorPage = () => {
   const [searchParams] = useSearchParams();
@@ -117,21 +36,24 @@ export const FacilityLocatorPage = () => {
 
   const categories = [
     { name: 'All', icon: Building2 },
-    { name: 'Printer', icon: Printer },
+    { name: 'Academic', icon: GraduationCap },
     { name: 'ATM', icon: CreditCard },
+    { name: 'Dining', icon: Utensils },
+    { name: 'Hostel', icon: Home },
     { name: 'Medical', icon: HeartPulse },
     { name: 'Parking', icon: Car },
-    { name: 'Wi-Fi', icon: Wifi },
-    { name: 'Lift', icon: Accessibility },
-    { name: 'Bus Stop', icon: Bus },
-    { name: 'Drinking Water', icon: Droplet },
+    { name: 'Recreation', icon: Trees },
+    { name: 'Sports', icon: Trophy },
+    { name: 'Utility', icon: Wrench },
   ];
 
-  const filteredFacilities = FACILITY_ITEMS.filter((fac) => {
-    const matchesCategory = activeCategory === 'All' || fac.category === activeCategory;
+  const filteredFacilities = CAMPUS_LOCATIONS.filter((fac) => {
+    const matchesCategory = activeCategory === 'All' || fac.category === activeCategory || fac.type === activeCategory;
     const matchesQuery =
       fac.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      fac.locationName.toLowerCase().includes(searchQuery.toLowerCase());
+      (fac.locationName && fac.locationName.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (fac.description && fac.description.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (fac.code && fac.code.toLowerCase().includes(searchQuery.toLowerCase()));
     return matchesCategory && matchesQuery;
   });
 
@@ -139,7 +61,7 @@ export const FacilityLocatorPage = () => {
     <AppLayout>
       <PageHeader
         title="Facility Locator"
-        description="Find essential campus amenities including printers, ATMs, medical facilities, parking zones, Wi-Fi hotspots, and bus stops."
+        description="Explore 22 official BIT campus facilities, academic blocks, residential halls, sports arenas, ATMs, and emergency units."
         breadcrumbs={[{ label: 'Facility Locator' }]}
       />
 
@@ -147,12 +69,12 @@ export const FacilityLocatorPage = () => {
         {/* Prominent Search Bar */}
         <div className="max-w-2xl">
           <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-            What are you looking for?
+            What campus location are you searching for?
           </label>
           <SearchBar
-            placeholder="Search printers, ATMs, cafeterias, water stations..."
+            placeholder="Search IB Block, Cafeteria, SBI ATM, Medical Centre..."
             onSearch={(q) => setSearchQuery(q)}
-            suggestions={['Student Printing Kiosk', 'HDFC ATM', 'Medical Clinic', 'Parking Lot B']}
+            suggestions={['IB Block', 'BIT Cafeteria', 'State Bank of India ATM', 'Medical Centre', 'Research Park']}
           />
         </div>
 
@@ -182,23 +104,40 @@ export const FacilityLocatorPage = () => {
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-              Available Amenities ({filteredFacilities.length})
+              BIT Campus Facilities ({filteredFacilities.length})
             </h3>
             <span className="text-xs text-slate-500">Sorted by walking distance</span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {filteredFacilities.map((facility) => (
-              <FacilityCard
-                key={facility.id}
-                facility={facility}
-                onNavigate={(f) => {
-                  addToast(`Opening map directions for ${f.name}`, 'info');
-                  navigate(`/map?q=${encodeURIComponent(f.name)}`);
+          {filteredFacilities.length === 0 ? (
+            <div className="text-center py-12 bg-white rounded-2xl border border-slate-200 p-6">
+              <Building2 className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+              <h4 className="text-sm font-bold text-slate-800">No matching campus locations found</h4>
+              <p className="text-xs text-slate-500 mt-1">Try clearing your filter or searching for another facility or block.</p>
+              <button
+                onClick={() => {
+                  setActiveCategory('All');
+                  setSearchQuery('');
                 }}
-              />
-            ))}
-          </div>
+                className="mt-4 px-4 py-2 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-xl text-xs font-semibold"
+              >
+                Reset Filters
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {filteredFacilities.map((facility) => (
+                <FacilityCard
+                  key={facility.id}
+                  facility={facility}
+                  onNavigate={(f) => {
+                    addToast(`Opening map directions for ${f.name}`, 'info');
+                    navigate(`/map?q=${encodeURIComponent(f.name)}`);
+                  }}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </AppLayout>
