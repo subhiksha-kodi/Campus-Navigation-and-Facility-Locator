@@ -4,6 +4,7 @@ import { RoleProvider, useRole } from './context/RoleContext';
 import { ToastProvider } from './context/ToastContext';
 import { SubstitutionProvider } from './context/SubstitutionContext';
 import { AdminProvider } from './context/AdminContext';
+import { StudentProvider } from './context/StudentContext';
 
 // Core Student & Public Pages
 import { LandingPage } from './pages/LandingPage';
@@ -12,6 +13,10 @@ import { CampusMapPage } from './pages/CampusMapPage';
 import { ClassroomFinderPage } from './pages/ClassroomFinderPage';
 import { FacilityLocatorPage } from './pages/FacilityLocatorPage';
 import { VoiceNavPage } from './pages/VoiceNavPage';
+import { IBBlock } from './pages/IBBlock';
+import { ASBlock } from './pages/ASBlock';
+import { SFBlock } from './pages/SFBlock';
+import { StudentSOSPage } from './pages/student/StudentSOSPage';
 import {
   LoginPage,
   RegisterPage,
@@ -150,6 +155,15 @@ function AppRoutes() {
       <Route path="/admin/profile" element={<AdminRouteGuard><AdminProfilePage /></AdminRouteGuard>} />
       <Route path="/admin/operations" element={<AdminRouteGuard><AdminOperationsPage /></AdminRouteGuard>} />
 
+      {/* 3D Interactive Building Block Viewers & Emergency SOS */}
+      <Route path="/as" element={<ASBlock />} />
+      <Route path="/as-block" element={<ASBlock />} />
+      <Route path="/ib" element={<IBBlock />} />
+      <Route path="/ib-block" element={<IBBlock />} />
+      <Route path="/sf" element={<SFBlock />} />
+      <Route path="/sf-block" element={<SFBlock />} />
+      <Route path="/student/emergency" element={<StudentSOSPage />} />
+
       {/* Catch-all Fallback Redirect */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
@@ -162,9 +176,11 @@ export function App() {
       <ToastProvider>
         <SubstitutionProvider>
           <AdminProvider>
-            <Router>
-              <AppRoutes />
-            </Router>
+            <StudentProvider>
+              <Router>
+                <AppRoutes />
+              </Router>
+            </StudentProvider>
           </AdminProvider>
         </SubstitutionProvider>
       </ToastProvider>

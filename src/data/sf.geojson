@@ -1,0 +1,19 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [77.27861816824422, 11.4963321209694, 0]
+      },
+      "properties": {
+        "name": "SF Block",
+        "code": "SF-BLOCK",
+        "type": "Academic",
+        "description": "Science & Humanities Department Wing",
+        "routePath": "/sf-block"
+      }
+    }
+  ]
+}

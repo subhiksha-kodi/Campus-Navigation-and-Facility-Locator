@@ -1,0 +1,512 @@
+/* ════════════════════════════════════════════════════════════════════════
+   AS Block 3D Floor Plan — Professional & AR Navigation Stylesheet
+   ════════════════════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+/* ── Base wrapper ─────────────────────────────────────────────────────── */
+.asblock-viewer-wrapper {
+  width: 100%;
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  background: #0d1117;
+}
+
+/* ── Loading state ────────────────────────────────────────────────────── */
+.viewer-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  font-size: 1rem;
+  color: #818cf8;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+  background: #0d1117;
+  z-index: 5;
+}
+
+.viewer-loading__spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid rgba(129, 140, 248, 0.2);
+  border-top-color: #818cf8;
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Top header bar ───────────────────────────────────────────────────── */
+.viewer-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 20px;
+  background: rgba(13, 17, 23, 0.88);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.viewer-header__icon {
+  font-size: 1.9rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.viewer-header__title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #f1f5f9;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.viewer-header__sub {
+  margin: 3px 0 0;
+  font-size: 0.75rem;
+  color: #64748b;
+  letter-spacing: 0.01em;
+}
+
+/* ── Mode Switcher ────────────────────────────────────────────────────── */
+.mode-switcher {
+  margin-left: auto;
+  display: flex;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 4px;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.mode-btn {
+  padding: 6px 14px;
+  border: none;
+  border-radius: 20px;
+  background: transparent;
+  color: #94a3b8;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mode-btn.active {
+  background: #0284c7;
+  color: #ffffff;
+  box-shadow: 0 0 12px rgba(2, 132, 199, 0.5);
+}
+
+.mode-btn:hover:not(.active) {
+  color: #f1f5f9;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* ── AR Navigation Drawer Panel ───────────────────────────────────────── */
+.ar-nav-panel {
+  position: absolute;
+  top: 75px;
+  left: 20px;
+  width: 340px;
+  max-width: calc(100vw - 40px);
+  z-index: 25;
+  background: rgba(15, 23, 42, 0.92);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(0, 243, 255, 0.3);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 15px rgba(0, 243, 255, 0.15);
+  color: #f1f5f9;
+  animation: slideInLeft 0.3s ease;
+}
+
+@keyframes slideInLeft {
+  from { transform: translateX(-40px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.ar-nav-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 8px;
+}
+
+.ar-nav-header h3 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #38bdf8;
+}
+
+.ar-badge {
+  background: rgba(14, 165, 233, 0.2);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.ar-nav-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.input-group label {
+  display: block;
+  font-size: 0.73rem;
+  font-weight: 700;
+  color: #94a3b8;
+  margin-bottom: 4px;
+}
+
+.select-with-mic {
+  display: flex;
+  gap: 6px;
+}
+
+.select-with-mic select {
+  flex: 1;
+  background: #0f172a;
+  color: #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  outline: none;
+}
+
+.select-with-mic select:focus {
+  border-color: #38bdf8;
+}
+
+.mic-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: #1e293b;
+  color: #fff;
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.mic-btn:hover {
+  background: #0284c7;
+  border-color: #38bdf8;
+}
+
+.mic-btn.listening {
+  background: #ef4444;
+  border-color: #f87171;
+  animation: pulseMic 1.2s infinite;
+}
+
+@keyframes pulseMic {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+  70% { transform: scale(1.08); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+.voice-log {
+  margin-top: 8px;
+  padding: 6px 10px;
+  background: rgba(14, 165, 233, 0.12);
+  border-radius: 6px;
+  font-size: 0.73rem;
+  color: #38bdf8;
+  font-weight: 600;
+}
+
+.ar-directions {
+  margin-top: 14px;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 10px 12px;
+  border-radius: 8px;
+  max-height: 140px;
+  overflow-y: auto;
+}
+
+.ar-directions h4 {
+  margin: 0 0 6px 0;
+  font-size: 0.75rem;
+  color: #cbd5e1;
+  text-transform: uppercase;
+}
+
+.ar-directions ol {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 0.76rem;
+  color: #94a3b8;
+  line-height: 1.45;
+}
+
+.ar-directions li {
+  margin-bottom: 4px;
+}
+
+.ar-guide-btn {
+  width: 100%;
+  margin-top: 14px;
+  padding: 10px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #0284c7, #0369a1);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.83rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);
+}
+
+.ar-guide-btn:hover {
+  background: linear-gradient(135deg, #0369a1, #075985);
+  transform: translateY(-1px);
+}
+
+.ar-guide-btn.speaking {
+  background: linear-gradient(135deg, #16a34a, #15803d);
+  animation: pulseGuide 1.5s infinite;
+}
+
+@keyframes pulseGuide {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+}
+
+/* ── AR Beacons inside 3D Scene ───────────────────────────────────────── */
+.ar-beacon {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 10.5px;
+  font-weight: 800;
+  color: #fff;
+  white-space: nowrap;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+  letter-spacing: 0.03em;
+}
+
+.ar-beacon--start {
+  background: #16a34a;
+  box-shadow: 0 0 15px rgba(22, 163, 74, 0.8);
+}
+
+.ar-beacon--end {
+  background: #dc2626;
+  box-shadow: 0 0 15px rgba(220, 38, 38, 0.8);
+}
+
+/* ── Controls hint (bottom) ───────────────────────────────────────────── */
+.viewer-controls-hint {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  display: flex;
+  gap: 20px;
+  padding: 8px 20px;
+  background: rgba(13, 17, 23, 0.75);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 30px;
+  font-size: 0.73rem;
+  color: #64748b;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* ── Floating room label (rendered by drei Html) ──────────────────────── */
+.room-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 11px;
+  border-radius: 20px;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+  user-select: none;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  pointer-events: none;
+}
+
+.room-label--hovered {
+  transform: scale(1.15) translateY(-2px);
+  box-shadow: 0 0 18px rgba(255, 255, 255, 0.18), 0 4px 16px rgba(0, 0, 0, 0.45);
+}
+
+.room-label__emoji {
+  font-size: 12px;
+  line-height: 1;
+}
+
+.room-label__name {
+  line-height: 1;
+}
+
+/* ── Sidebar panel ────────────────────────────────────────────────────── */
+.room-sidebar {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: stretch;
+  justify-content: flex-end;
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(2px);
+}
+
+.room-sidebar__card {
+  width: 320px;
+  max-width: 90vw;
+  height: 100%;
+  background: #0f172a;
+  display: flex;
+  flex-direction: column;
+  box-shadow: -16px 0 60px rgba(0, 0, 0, 0.7);
+  overflow-y: auto;
+}
+
+.room-sidebar__header {
+  position: relative;
+  padding: 44px 24px 26px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.room-sidebar__close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.85);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.room-sidebar__emoji {
+  font-size: 3rem;
+  margin-bottom: 12px;
+}
+
+.room-sidebar__title {
+  margin: 0 0 10px;
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #fff;
+}
+
+.badge--floor {
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+}
+
+.room-sidebar__body {
+  padding: 22px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.room-stat {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+}
+
+.room-stat__icon {
+  font-size: 1.9rem;
+}
+
+.room-stat__label {
+  font-size: 0.7rem;
+  color: #475569;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.room-stat__value {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #e2e8f0;
+}
+
+.facilities-section__title {
+  margin: 0 0 12px;
+  font-size: 0.7rem;
+  color: #475569;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.facilities-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.facility-chip {
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1.5px solid var(--c);
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--c);
+  background: color-mix(in srgb, var(--c) 10%, transparent);
+}
+
+.room-sidebar__hint {
+  text-align: center;
+  padding: 14px;
+  font-size: 0.7rem;
+  color: #1e293b;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  margin: 0;
+}
