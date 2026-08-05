@@ -29,7 +29,11 @@ export const AdminFeedbackPage = () => {
   useEffect(() => {
     const onStorage = () => refreshSubmissions();
     window.addEventListener('storage', onStorage);
-    return () => window.removeEventListener('storage', onStorage);
+    window.addEventListener('feedbackSubmitted', onStorage);
+    return () => {
+      window.removeEventListener('storage', onStorage);
+      window.removeEventListener('feedbackSubmitted', onStorage);
+    };
   }, []);
 
   const totalCount = submissions.length;

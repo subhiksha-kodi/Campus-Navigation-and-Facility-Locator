@@ -37,7 +37,8 @@ export const Sidebar = ({ isOpen, onClose }) => {
     {
       title: 'Overview',
       items: [
-        { name: 'Visitor Portal', path: '/visitors', icon: LayoutDashboard, roles: ['visitor'] }
+        { name: 'Visitor Portal', path: '/visitors', icon: LayoutDashboard, roles: ['visitor'] },
+        { name: 'Rate My Visit (Feedback)', path: '/visitors?tab=feedback', icon: Star, roles: ['visitor'] }
       ]
     },
     {

@@ -1617,7 +1617,7 @@ export const VisitorPortalPage = () => {
                       </div>
 
                       <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-slate-700 block">Comments & Suggestions</label>
+                        <label className="text-xs font-semibold text-slate-700 block">Comments & Suggestions <span className="text-[10px] text-slate-400 font-normal">(Optional)</span></label>
                         <textarea
                           className="w-full rounded-xl border border-slate-200 bg-slate-50 text-xs p-3 resize-none focus:outline-none focus:ring-2 focus:ring-blue-400 text-slate-800 placeholder:text-slate-400"
                           rows={4}
@@ -1627,12 +1627,92 @@ export const VisitorPortalPage = () => {
                         />
                       </div>
 
+                      {/* Optional Photo & Video Upload Options */}
+                      <div className="space-y-2 pt-1">
+                        <div className="flex items-center justify-between">
+                          <label className="text-xs font-semibold text-slate-700 block">Attach Media <span className="text-[10px] text-slate-400 font-normal">(Optional — Photos / Video)</span></label>
+                          <span className="text-[10px] text-slate-400">Max 8MB photo / 80MB video</span>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <label className="rounded-xl border border-dashed border-slate-300 bg-slate-50/60 p-3.5 cursor-pointer hover:border-blue-400 hover:bg-blue-50/30 transition-all flex items-center gap-3">
+                            <input
+                              type="file"
+                              className="hidden"
+                              accept="image/jpeg,image/png,image/heic,image/heif"
+                              multiple
+                              onChange={(e) => appendFeedbackDrafts(Array.from(e.target.files || []), 'photo')}
+                            />
+                            <div className="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center shrink-0">
+                              <UploadCloud className="w-4 h-4" />
+                            </div>
+                            <div>
+                              <p className="text-xs font-bold text-slate-800">Add Photos</p>
+                              <p className="text-[10px] text-slate-500">JPG, PNG, HEIC</p>
+                            </div>
+                          </label>
+
+                          <label className="rounded-xl border border-dashed border-slate-300 bg-slate-50/60 p-3.5 cursor-pointer hover:border-purple-400 hover:bg-purple-50/30 transition-all flex items-center gap-3">
+                            <input
+                              type="file"
+                              className="hidden"
+                              accept="video/mp4,video/quicktime"
+                              onChange={(e) => appendFeedbackDrafts(Array.from(e.target.files || []), 'video')}
+                            />
+                            <div className="w-9 h-9 rounded-lg bg-purple-50 text-purple-600 border border-purple-100 flex items-center justify-center shrink-0">
+                              <Play className="w-4 h-4" />
+                            </div>
+                            <div>
+                              <p className="text-xs font-bold text-slate-800">Add Video Clip</p>
+                              <p className="text-[10px] text-slate-500">MP4 or MOV</p>
+                            </div>
+                          </label>
+                        </div>
+
+                        {/* Media Draft Previews */}
+                        {(feedbackPhotoDrafts.length > 0 || feedbackVideoDraft) && (
+                          <div className="flex flex-wrap gap-2 pt-2">
+                            {feedbackPhotoDrafts.map((photo) => (
+                              <div key={photo.id} className="flex items-center gap-1.5 bg-blue-50 border border-blue-200 text-blue-900 text-xs px-2.5 py-1 rounded-lg">
+                                <Image className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                                <span className="truncate max-w-[120px] font-medium text-[11px]">{photo.name}</span>
+                                <button
+                                  type="button"
+                                  className="text-blue-400 hover:text-blue-700 ml-1"
+                                  onClick={() => {
+                                    if (photo.previewUrl) URL.revokeObjectURL(photo.previewUrl);
+                                    setFeedbackPhotoDrafts((prev) => prev.filter((item) => item.id !== photo.id));
+                                  }}
+                                >
+                                  <X className="w-3 h-3" />
+                                </button>
+                              </div>
+                            ))}
+                            {feedbackVideoDraft && (
+                              <div className="flex items-center gap-1.5 bg-purple-50 border border-purple-200 text-purple-900 text-xs px-2.5 py-1 rounded-lg">
+                                <Play className="w-3.5 h-3.5 text-purple-600 shrink-0" />
+                                <span className="truncate max-w-[140px] font-medium text-[11px]">{feedbackVideoDraft.name}</span>
+                                <button
+                                  type="button"
+                                  className="text-purple-400 hover:text-purple-700 ml-1"
+                                  onClick={() => {
+                                    if (feedbackVideoDraft.previewUrl) URL.revokeObjectURL(feedbackVideoDraft.previewUrl);
+                                    setFeedbackVideoDraft(null);
+                                  }}
+                                >
+                                  <X className="w-3 h-3" />
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
                       {feedbackSubmitError && (
                         <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-800">{feedbackSubmitError}</div>
                       )}
 
-                      <div className="flex items-center justify-between gap-3">
-                        <span className="text-[11px] text-slate-400">Stored locally in this browser.</span>
+                      <div className="flex items-center justify-between gap-3 pt-2 border-t border-slate-100">
+                        <span className="text-[11px] text-slate-400">Feedback will be reviewed by campus admin.</span>
                         <Button
                           variant="primary" size="sm" icon={Star}
                           isLoading={feedbackSubmitStatus === 'submitting'}
@@ -1653,7 +1733,10 @@ export const VisitorPortalPage = () => {
                                 onProgress: () => {},
                               });
                               setFeedbackSubmitStatus('done');
-                              addToast('Thank you! Your feedback has been submitted.', 'success');
+                              // Dispatch storage and feedbackSubmitted events so Admin Feedback page updates immediately
+                              window.dispatchEvent(new Event('storage'));
+                              window.dispatchEvent(new Event('feedbackSubmitted'));
+                              addToast('Thank you! Your feedback has been submitted to Admin.', 'success');
                             } catch (err) {
                               setFeedbackSubmitStatus('idle');
                               setFeedbackSubmitError(err.message || 'Failed to submit feedback.');
@@ -1668,6 +1751,7 @@ export const VisitorPortalPage = () => {
                 )}
               </div>
             </div>
+
           )}
         </div>
       )}
