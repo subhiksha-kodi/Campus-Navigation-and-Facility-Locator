@@ -3,9 +3,54 @@ import { Mic, MicOff, Navigation, Volume2, X, AlertCircle, CheckCircle2 } from '
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 
+// Helper to translate spoken Tanglish (romanized Tamil) terms to database English names
+const translateTanglishToEnglish = (text) => {
+  const t = text.toLowerCase().trim();
+
+  // Food / Cafeteria
+  if (t.includes('unavagam') || t.includes('unavakam') || t.includes('saapadu') || t.includes('canteen') || t.includes('cafeteria') || t.includes('food')) return 'Main Cafeteria';
+
+  // Library
+  if (t.includes('noolgam') || t.includes('noollagam') || t.includes('library') || t.includes('book') || t.includes('padikka')) return 'Central Library';
+
+  // Medical
+  if (t.includes('maruthuvam') || t.includes('hospital') || t.includes('clinic') || t.includes('health') || t.includes('medical') || t.includes('aaspathiri')) return 'Medical Centre';
+
+  // Auditorium
+  if (t.includes('arangam') || t.includes('auditorium') || t.includes('hall')) return 'Auditorium';
+
+  // Hostel
+  if (t.includes('hostel') || t.includes('viduthy') || t.includes('viduthi')) {
+    if (t.includes('girls') || t.includes('penn') || t.includes('maanavi')) return 'Girls Hostel';
+    return 'Boys Hostel';
+  }
+
+  // ATM / Bank
+  if (t.includes('atm') || t.includes('venki') || t.includes('bank') || t.includes('panam')) return 'State Bank of India ATM';
+
+  // Sports / Court
+  if (t.includes('vilaiyattu') || t.includes('tennis') || t.includes('court') || t.includes('ground')) return 'Tennis Court';
+
+  // Parking
+  if (t.includes('parking') || t.includes('vandi') || t.includes('vehicle')) return 'Vehicle Parking';
+
+  // Blocks and Classrooms
+  if (t.includes('cs') || t.includes('computer') || t.includes('kanini')) {
+    if (t.includes('303')) return 'CS303';
+    if (t.includes('101')) return 'CS101';
+    return 'Computer Science Block';
+  }
+  if (t.includes('ib block') || t.includes('ib') || t.includes('information')) return 'IB Block';
+  if (t.includes('sf block') || t.includes('sf') || t.includes('science')) return 'SF Block';
+  if (t.includes('mech') || t.includes('mechanical')) return 'Mech';
+
+  return text; // fallback — return as-is
+};
+
 export const VoiceNavigationModal = ({ isOpen, onClose, onStartNavigation }) => {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
+  const [lang, setLang] = useState('en-US');
   const [statusMessage, setStatusMessage] = useState('Tap the microphone and say a destination.');
   const [speechSupported, setSpeechSupported] = useState(true);
 
@@ -25,7 +70,11 @@ export const VoiceNavigationModal = ({ isOpen, onClose, onStartNavigation }) => 
 
     setTranscript('');
     setIsListening(true);
-    setStatusMessage('Listening... Speak your destination clearly (e.g. Cafeteria, CS303, Library)');
+    setStatusMessage(
+      lang === 'ta-IN'
+        ? 'Listening... Tanglish la pesavum (e.g. unavagam, noollagam, CS 303, maruthuvam)'
+        : 'Listening... Speak your destination clearly (e.g. Cafeteria, CS303, Library)'
+    );
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
@@ -33,13 +82,19 @@ export const VoiceNavigationModal = ({ isOpen, onClose, onStartNavigation }) => 
       const recognition = new SpeechRecognition();
       recognition.continuous = false;
       recognition.interimResults = false;
-      recognition.lang = 'en-US';
+      recognition.lang = lang;
 
       recognition.onresult = (event) => {
         const text = event.results[0][0].transcript;
-        setTranscript(text);
+        if (lang === 'ta-IN') {
+          const englishTranslation = translateTanglishToEnglish(text);
+          setTranscript(englishTranslation);
+          setStatusMessage(`Tanglish recognized: "${text}" ➔ Navigating to: "${englishTranslation}"`);
+        } else {
+          setTranscript(text);
+          setStatusMessage(`You said: "${text}"`);
+        }
         setIsListening(false);
-        setStatusMessage(`You said: "${text}"`);
       };
 
       recognition.onerror = () => {
@@ -55,11 +110,20 @@ export const VoiceNavigationModal = ({ isOpen, onClose, onStartNavigation }) => 
     } else {
       // Simulation fallback for browsers without webkitSpeechRecognition
       setTimeout(() => {
-        const demoDestinations = ['Central Library', 'Main Cafeteria', 'Classroom CS303', 'Medical Centre', 'Parking Lot B'];
+        const demoDestinations = lang === 'ta-IN'
+          ? ['unavagam', 'noollagam', 'CS 303', 'maruthuvam', 'parking']
+          : ['Central Library', 'Main Cafeteria', 'Classroom CS303', 'Medical Centre', 'Parking Lot B'];
         const randomPick = demoDestinations[Math.floor(Math.random() * demoDestinations.length)];
-        setTranscript(randomPick);
-        setIsListening(false);
-        setStatusMessage(`You said: "${randomPick}"`);
+        
+        if (lang === 'ta-IN') {
+          const englishTranslation = translateTanglishToEnglish(randomPick);
+          setTranscript(englishTranslation);
+          setStatusMessage(`Tanglish recognized (demo): "${randomPick}" ➔ Navigating to: "${englishTranslation}"`);
+        } else {
+          setTranscript(randomPick);
+          setIsListening(false);
+          setStatusMessage(`You said (simulated): "${randomPick}"`);
+        }
       }, 2500);
     }
   };
@@ -76,7 +140,36 @@ export const VoiceNavigationModal = ({ isOpen, onClose, onStartNavigation }) => 
       <div className="flex flex-col items-center justify-center text-center space-y-6 py-4">
         <div>
           <h3 className="text-xl font-bold text-slate-900">Where would you like to go?</h3>
-          <p className="text-xs text-slate-500 mt-1 max-w-xs">{statusMessage}</p>
+          <p className="text-xs text-slate-500 mt-1 max-w-xs mb-3">{statusMessage}</p>
+          
+          {/* Language Selector */}
+          <div className="flex justify-center items-center gap-2">
+            <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Lang:</span>
+            <div className="inline-flex rounded-lg border border-slate-200 p-0.5 bg-slate-50 text-[11px]">
+              <button
+                type="button"
+                onClick={() => setLang('en-US')}
+                className={`px-2.5 py-1 rounded-md font-medium transition-colors ${
+                  lang === 'en-US'
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                English
+              </button>
+              <button
+                type="button"
+                onClick={() => setLang('ta-IN')}
+                className={`px-2.5 py-1 rounded-md font-medium transition-colors ${
+                  lang === 'ta-IN'
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Tanglish (தமிழ்+English)
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Large Microphone Trigger Button */}
@@ -114,7 +207,10 @@ export const VoiceNavigationModal = ({ isOpen, onClose, onStartNavigation }) => 
           </div>
         ) : (
           <div className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-500">
-            Try saying: <strong>"Take me to the Library"</strong> or <strong>"Find CS303"</strong>
+            {lang === 'ta-IN'
+              ? <>Try saying: <strong>"unavagam"</strong>, <strong>"noollagam"</strong>, <strong>"CS 303"</strong>, <strong>"maruthuvam"</strong></>
+              : <>Try saying: <strong>"Take me to the Library"</strong> or <strong>"Find CS303"</strong></>
+            }
           </div>
         )}
 

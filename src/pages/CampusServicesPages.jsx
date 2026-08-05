@@ -58,10 +58,11 @@ import {
   formatFeedbackVisitLabel,
   getFeedbackSubmissionForVisit,
   saveFeedbackSubmission,
+  deleteFeedbackSubmissionForVisit,
 } from '../services/feedbackService';
 
 const FEEDBACK_VISIT_STATUSES = ['checked-in', 'completed'];
-const REGULAR_PORTAL_TABS = ['home', 'request', 'passes', 'guide', 'alerts'];
+const REGULAR_PORTAL_TABS = ['home', 'request', 'passes', 'guide', 'alerts', 'feedback'];
 
 // 1. Notices Page
 export const NoticesPage = () => {
@@ -1012,6 +1013,7 @@ export const VisitorPortalPage = () => {
             { id: 'passes', label: 'My Passes & History', icon: QrCode, badge: visits.length },
             { id: 'guide', label: 'Campus Map & Finder', icon: Map },
             { id: 'alerts', label: 'Notifications & Safety', icon: Bell, badge: notifications.length },
+            { id: 'feedback', label: 'Rate My Visit', icon: Star },
           ]}
           variant="underline"
         />
@@ -1471,6 +1473,204 @@ export const VisitorPortalPage = () => {
         )}
 
       </div>
+
+      {/* Tab 6: Rate My Visit — Feedback Tab Panel */}
+      {portalTab === 'feedback' && activeRole === 'visitor' && (
+        <div className="space-y-6 mt-2">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-base font-extrabold text-slate-900">Rate My Campus Visit</h3>
+              <p className="text-xs text-slate-500 mt-0.5">Share your experience — helps us improve campus services for future visitors.</p>
+            </div>
+            <Badge variant="info" size="sm">Post-Visit Reflection</Badge>
+          </div>
+
+          {!completedVisits.length ? (
+            <Card className="border-dashed border-slate-300 bg-white">
+              <CardContent className="p-10 text-center space-y-4">
+                <div className="w-14 h-14 rounded-full bg-yellow-50 text-yellow-500 flex items-center justify-center mx-auto">
+                  <Star className="w-7 h-7" />
+                </div>
+                <h4 className="text-sm font-extrabold text-slate-900">No Completed Visits Yet</h4>
+                <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                  Once you complete a campus visit, it will appear here so you can rate your overall experience and leave comments.
+                </p>
+                <Button variant="outline" size="sm" icon={Plus} onClick={() => setPortalTab('request')}>
+                  Request a Visit Pass
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              <div className="lg:col-span-4 space-y-3">
+                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Select a Visit to Rate</h4>
+                {completedVisits.map((visit) => {
+                  const hasSubmitted = !!getFeedbackSubmissionForVisit(user?.id, visit.id);
+                  return (
+                    <button
+                      key={visit.id}
+                      onClick={() => setFeedbackSelectedVisitId(visit.id)}
+                      className={`w-full text-left p-4 rounded-xl border transition-all ${
+                        feedbackSelectedVisitId === visit.id
+                          ? 'bg-blue-50 border-blue-300 ring-2 ring-blue-200'
+                          : 'bg-white border-slate-200 hover:border-blue-200'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <p className="text-xs font-bold text-slate-900 truncate">{visit.host}</p>
+                          <p className="text-[11px] text-slate-500 mt-0.5">{visit.date} · {visit.purpose}</p>
+                        </div>
+                        {hasSubmitted && <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="lg:col-span-8">
+                {!feedbackSelectedVisitId ? (
+                  <Card className="border-dashed border-slate-200 bg-slate-50 min-h-[250px] flex items-center justify-center">
+                    <CardContent className="text-center text-xs text-slate-450 p-8">
+                      <Star className="w-8 h-8 text-slate-300 mx-auto mb-3" />
+                      Select a visit on the left to rate it.
+                    </CardContent>
+                  </Card>
+                ) : existingFeedbackSubmission ? (
+                  <>
+                    {/* Demo-only reset banner */}
+                    {['VPASS-88392', 'VPASS-10293'].includes(feedbackSelectedVisitId) && (
+                      <div className="mb-3 flex items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50/60 px-4 py-2.5">
+                        <div className="flex items-center gap-2 text-[11px] text-amber-800 font-medium">
+                          <span className="text-amber-500">🧪</span>
+                          <span>Demo mode — reset to re-fill and resubmit this visit's feedback.</span>
+                        </div>
+                        <button
+                          type="button"
+                          className="shrink-0 rounded-lg border border-amber-300 bg-white px-3 py-1 text-[11px] font-bold text-amber-700 hover:bg-amber-100 transition-colors"
+                          onClick={async () => {
+                            try {
+                              await deleteFeedbackSubmissionForVisit(user?.id, feedbackSelectedVisitId);
+                              setFeedbackOverallRating(0);
+                              setFeedbackAspectRatings(Object.fromEntries(FEEDBACK_ASPECT_OPTIONS.map((a) => [a.key, 0])));
+                              setFeedbackComment('');
+                              setFeedbackPhotoDrafts([]);
+                              setFeedbackVideoDraft(null);
+                              setFeedbackSubmitStatus('idle');
+                              setFeedbackSubmitError('');
+                              addToast('Demo feedback reset. You can now resubmit.', 'info');
+                            } catch (err) {
+                              addToast('Failed to reset feedback: ' + err.message, 'error');
+                            }
+                          }}
+                        >
+                          🔄 Reset demo
+                        </button>
+                      </div>
+                    )}
+                    <Card className="bg-emerald-50/60 border-emerald-200">
+                    <CardContent className="p-5 flex items-start gap-3">
+                      <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                      <div>
+                        <h4 className="text-sm font-extrabold text-emerald-950">Feedback Already Submitted</h4>
+                        <p className="text-xs text-emerald-800 mt-1">You rated this visit <strong>{existingFeedbackSubmission.overallRating}/5 stars</strong>.</p>
+                        {existingFeedbackSubmission.comment && (
+                          <p className="text-xs text-slate-600 italic mt-2 pt-2 border-t border-emerald-200">"{existingFeedbackSubmission.comment}"</p>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                  </>
+                ) : (
+                  <Card>
+                    <CardContent className="p-5 space-y-5">
+                      <div className="space-y-2">
+                        <label className="text-xs font-semibold text-slate-700 block">Overall Visit Rating</label>
+                        <div className="flex gap-2 items-center">
+                          {[1,2,3,4,5].map((star) => (
+                            <button key={star} type="button" onClick={() => setFeedbackOverallRating(star)} className="transition-transform hover:scale-110">
+                              <Star className={`w-8 h-8 ${feedbackOverallRating >= star ? 'text-yellow-400 fill-yellow-400' : 'text-slate-300'}`} />
+                            </button>
+                          ))}
+                          {feedbackOverallRating > 0 && (
+                            <span className="text-xs text-slate-500 ml-2 font-medium">{['','Poor','Fair','Good','Very Good','Excellent'][feedbackOverallRating]}</span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-xs font-semibold text-slate-700 block">Rate Specific Aspects</label>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {FEEDBACK_ASPECT_OPTIONS.map((aspect) => (
+                            <div key={aspect.key} className="space-y-1.5">
+                              <span className="text-[11px] text-slate-600 font-medium">{aspect.label}</span>
+                              <div className="flex gap-1">
+                                {[1,2,3,4,5].map((star) => (
+                                  <button key={star} type="button" onClick={() => setFeedbackAspectRatings((prev) => ({ ...prev, [aspect.key]: star }))}>
+                                    <Star className={`w-4 h-4 ${(feedbackAspectRatings[aspect.key]||0) >= star ? 'text-yellow-400 fill-yellow-400' : 'text-slate-200'}`} />
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-semibold text-slate-700 block">Comments & Suggestions</label>
+                        <textarea
+                          className="w-full rounded-xl border border-slate-200 bg-slate-50 text-xs p-3 resize-none focus:outline-none focus:ring-2 focus:ring-blue-400 text-slate-800 placeholder:text-slate-400"
+                          rows={4}
+                          placeholder="Describe your campus visit experience — what went well and what could be improved..."
+                          value={feedbackComment}
+                          onChange={(e) => setFeedbackComment(e.target.value)}
+                        />
+                      </div>
+
+                      {feedbackSubmitError && (
+                        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-800">{feedbackSubmitError}</div>
+                      )}
+
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="text-[11px] text-slate-400">Stored locally in this browser.</span>
+                        <Button
+                          variant="primary" size="sm" icon={Star}
+                          isLoading={feedbackSubmitStatus === 'submitting'}
+                          disabled={!feedbackOverallRating}
+                          onClick={async () => {
+                            const visit = completedVisits.find((v) => v.id === feedbackSelectedVisitId);
+                            if (!visit || !user) return;
+                            setFeedbackSubmitStatus('submitting');
+                            setFeedbackSubmitError('');
+                            try {
+                              await saveFeedbackSubmission({
+                                visitor: user, visit,
+                                overallRating: feedbackOverallRating,
+                                aspectRatings: feedbackAspectRatings,
+                                comment: feedbackComment,
+                                photoDrafts: feedbackPhotoDrafts,
+                                videoDraft: feedbackVideoDraft,
+                                onProgress: () => {},
+                              });
+                              setFeedbackSubmitStatus('done');
+                              addToast('Thank you! Your feedback has been submitted.', 'success');
+                            } catch (err) {
+                              setFeedbackSubmitStatus('idle');
+                              setFeedbackSubmitError(err.message || 'Failed to submit feedback.');
+                            }
+                          }}
+                        >
+                          Submit Feedback
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Visitor Feedback Drawer */}
       {feedbackDrawerOpen && activeRole === 'visitor' && (

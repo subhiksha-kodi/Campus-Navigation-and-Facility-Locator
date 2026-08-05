@@ -8,12 +8,41 @@ import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { useToast } from '../context/ToastContext';
 
+// Helper to translate spoken Tamil terms to database English names
+const translateTamilToEnglish = (text) => {
+  const t = text.toLowerCase().trim();
+  if (t.includes('உணவகம்') || t.includes('சாப்பாடு') || t.includes('கேண்டீன்') || t.includes('கவ்டீரியா')) return 'Main Cafeteria';
+  if (t.includes('நூலகம்') || t.includes('புத்தகம்') || t.includes('லைப்ரரி')) return 'Central Library';
+  if (t.includes('மருத்துவ') || t.includes('ஆஸ்பத்திரி') || t.includes('கிளினிக்') || t.includes('ஹெல்த்')) return 'Medical Centre';
+  if (t.includes('அரங்கம்') || t.includes('ஆடிட்டோரியம்')) return 'Auditorium';
+  if (t.includes('விடுதி') || t.includes('ஹாஸ்டல்')) {
+    if (t.includes('பெண்கள்') || t.includes('மாணவியர்') || t.includes('கேர்ள்ஸ்')) return 'Girls Hostel';
+    return 'Boys Hostel';
+  }
+  if (t.includes('வங்கி') || t.includes('ஏடிஎம்')) return 'State Bank of India ATM';
+  if (t.includes('விளையாட்டு') || t.includes('டென்னிஸ்') || t.includes('கோர்ட்')) return 'Tennis Court';
+  if (t.includes('நிறுத்துமிடம்') || t.includes('பார்க்கிங்')) return 'Vehicle Parking';
+  
+  // Classes and Blocks
+  if (t.includes('சிஎஸ்') || t.includes('கணினி')) {
+    if (t.includes('303')) return 'CS303';
+    if (t.includes('101')) return 'CS101';
+    return 'Computer Science Block';
+  }
+  if (t.includes('ஐபி') || t.includes('தகவல்')) return 'IB Block';
+  if (t.includes('எஸ்எப்') || t.includes('அறிவியல்')) return 'SF Block';
+  if (t.includes('மெக்கானிக்கல்') || t.includes('மெக்')) return 'Mech';
+  
+  return text; // fallback
+};
+
 export const VoiceNavPage = () => {
   const navigate = useNavigate();
   const { addToast } = useToast();
 
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
+  const [lang, setLang] = useState('en-US');
   const [statusMessage, setStatusMessage] = useState('Tap the microphone and say a destination.');
   const [hasSpeechSupport, setHasSpeechSupport] = useState(true);
 
@@ -32,7 +61,11 @@ export const VoiceNavPage = () => {
 
     setTranscript('');
     setIsListening(true);
-    setStatusMessage('Listening... Speak your destination clearly (e.g., Main Cafeteria, CS303, Library)');
+    setStatusMessage(
+      lang === 'ta-IN'
+        ? 'கேட்டுக் கொண்டிருக்கிறது... உங்கள் இலக்கை தெளிவாகக் கூறவும் (எ.கா. உணவகம், நூலகம், சிஎஸ்303)'
+        : 'Listening... Speak your destination clearly (e.g., Main Cafeteria, CS303, Library)'
+    );
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
@@ -40,13 +73,19 @@ export const VoiceNavPage = () => {
       const recognition = new SpeechRecognition();
       recognition.continuous = false;
       recognition.interimResults = false;
-      recognition.lang = 'en-US';
+      recognition.lang = lang;
 
       recognition.onresult = (event) => {
         const text = event.results[0][0].transcript;
-        setTranscript(text);
+        if (lang === 'ta-IN') {
+          const englishTranslation = translateTamilToEnglish(text);
+          setTranscript(englishTranslation);
+          setStatusMessage(`Tamil recognized: "${text}" ➔ Map target: "${englishTranslation}"`);
+        } else {
+          setTranscript(text);
+          setStatusMessage(`You said: "${text}"`);
+        }
         setIsListening(false);
-        setStatusMessage(`You said: "${text}"`);
       };
 
       recognition.onerror = () => {
@@ -62,11 +101,20 @@ export const VoiceNavPage = () => {
     } else {
       // Simulation for browsers without Web Speech API
       setTimeout(() => {
-        const samplePlaces = ['Main Cafeteria', 'Central Library', 'Classroom CS303', 'Medical Centre'];
+        const samplePlaces = lang === 'ta-IN'
+          ? ['உணவகம்', 'நூலகம்', 'சிஎஸ் 303', 'மருத்துவமனை']
+          : ['Main Cafeteria', 'Central Library', 'Classroom CS303', 'Medical Centre'];
         const chosen = samplePlaces[Math.floor(Math.random() * samplePlaces.length)];
-        setTranscript(chosen);
+        
+        if (lang === 'ta-IN') {
+          const englishTranslation = translateTamilToEnglish(chosen);
+          setTranscript(englishTranslation);
+          setStatusMessage(`Tamil recognized (simulated): "${chosen}" ➔ Map target: "${englishTranslation}"`);
+        } else {
+          setTranscript(chosen);
+          setStatusMessage(`You said (simulated): "${chosen}"`);
+        }
         setIsListening(false);
-        setStatusMessage(`You said: "${chosen}"`);
       }, 2200);
     }
   };
@@ -96,7 +144,36 @@ export const VoiceNavPage = () => {
           <div className="space-y-6">
             <div>
               <h2 className="text-2xl font-extrabold text-slate-900">Where would you like to go?</h2>
-              <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-md mx-auto">{statusMessage}</p>
+              <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-md mx-auto mb-4">{statusMessage}</p>
+              
+              {/* Language Selector */}
+              <div className="flex justify-center items-center gap-2">
+                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Recognition Language:</span>
+                <div className="inline-flex rounded-lg border border-slate-200 p-0.5 bg-slate-50 text-xs">
+                  <button
+                    type="button"
+                    onClick={() => setLang('en-US')}
+                    className={`px-3 py-1.5 rounded-md font-medium transition-colors ${
+                      lang === 'en-US'
+                        ? 'bg-blue-600 text-white shadow-sm'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    English
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setLang('ta-IN')}
+                    className={`px-3 py-1.5 rounded-md font-medium transition-colors ${
+                      lang === 'ta-IN'
+                        ? 'bg-blue-600 text-white shadow-sm'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    தமிழ் (Tamil)
+                  </button>
+                </div>
+              </div>
             </div>
 
             {/* Large Microphone Trigger Button */}
